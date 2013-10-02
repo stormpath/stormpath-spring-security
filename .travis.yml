@@ -1,0 +1,7 @@
+# https://travis-ci.org/stormpath/stormpath-spring-security
+language: java
+
+jdk:
+  - openjdk6
+  - openjdk7
+  - oraclejdk7
