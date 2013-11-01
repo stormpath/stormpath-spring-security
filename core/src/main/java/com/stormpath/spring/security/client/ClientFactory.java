@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stormpath.spring.client;
+package com.stormpath.spring.security.client;
 
 import com.stormpath.sdk.cache.CacheManager;
 import com.stormpath.sdk.client.Client;
@@ -36,7 +36,7 @@ import java.util.Properties;
  * Example {@code spring.xml} configuration:
  * <p/>
  * <pre>
- * <bean id="stormpathClient" class="com.stormpath.spring.client.ClientFactory" >
+ * <bean id="stormpathClient" class="com.stormpath.spring.security.client.ClientFactory" >
  * <property name="apiKeyFileLocation" value="#{systemProperties['user.home']}/.stormpath/apiKey.properties" />
  * </bean>
  *

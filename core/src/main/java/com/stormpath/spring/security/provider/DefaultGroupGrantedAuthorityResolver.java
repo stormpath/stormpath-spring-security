@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stormpath.spring.provider;
+package com.stormpath.spring.security.provider;
 
 import com.stormpath.sdk.group.Group;
 import org.springframework.security.core.GrantedAuthority;
@@ -70,7 +70,7 @@ import java.util.Set;
  * <p/>
  * Or maybe in spring.xml:
  * <pre>
- * <beans:bean id="groupGrantedAuthorityResolver" class="com.stormpath.spring.provider.DefaultGroupGrantedAuthorityResolver" >
+ * <beans:bean id="groupGrantedAuthorityResolver" class="com.stormpath.spring.security.provider.DefaultGroupGrantedAuthorityResolver" >
  *      <beans:property name="modeNames" >
  *          <beans:set>
  *              <beans:value>href</beans:value>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stormpath.spring.util;
+package com.stormpath.spring.security.util;
 
 public class StringUtils {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stormpath.spring.provider;
+package com.stormpath.spring.security.provider;
 
 import com.stormpath.sdk.account.Account;
 import com.stormpath.sdk.application.Application;
@@ -24,7 +24,7 @@ import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.group.Group;
 import com.stormpath.sdk.group.GroupList;
 import com.stormpath.sdk.resource.ResourceException;
-import com.stormpath.spring.util.StringUtils;
+import com.stormpath.spring.security.util.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;

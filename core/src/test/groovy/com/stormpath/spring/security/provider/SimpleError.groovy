@@ -15,7 +15,7 @@
  */
 
 
-package com.stormpath.spring.provider
+package com.stormpath.spring.security.provider
 
 class SimpleError implements com.stormpath.sdk.error.Error {
 

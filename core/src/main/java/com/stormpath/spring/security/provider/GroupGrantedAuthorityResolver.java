@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stormpath.spring.provider;
+package com.stormpath.spring.security.provider;
 
 import com.stormpath.sdk.group.Group;
 import org.springframework.security.core.GrantedAuthority;

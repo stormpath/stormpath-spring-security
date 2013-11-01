@@ -15,7 +15,7 @@
  */
 
 
-package com.stormpath.spring.util
+package com.stormpath.spring.security.util
 
 import org.junit.Test
 

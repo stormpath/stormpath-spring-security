@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stormpath.spring.provider;
+package com.stormpath.spring.security.provider;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,7 +24,7 @@ import java.util.Collection;
 
 
 /**
- * A {@link com.stormpath.spring.provider.AuthenticationTokenFactory} implementation that creates simple representation
+ * A {@link com.stormpath.spring.security.provider.AuthenticationTokenFactory} implementation that creates simple representation
  * of a username and password token.
  */
 public class UsernamePasswordAuthenticationTokenFactory implements AuthenticationTokenFactory {

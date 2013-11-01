@@ -26,9 +26,9 @@
         <version>7</version>
     </parent>
 
-    <groupId>com.stormpath.spring</groupId>
+    <groupId>com.stormpath.spring.security</groupId>
     <artifactId>stormpath-spring-security-root</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <name>Stormpath Spring Security</name>

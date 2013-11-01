@@ -16,7 +16,7 @@
 
 
 
-package com.stormpath.spring.provider
+package com.stormpath.spring.security.provider
 
 import com.stormpath.sdk.account.Account
 import com.stormpath.sdk.application.Application

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.stormpath.spring.provider
+package com.stormpath.spring.security.provider
 
 import org.junit.Assert
 import org.junit.Test

@@ -15,7 +15,7 @@
  */
 
 
-package com.stormpath.spring.client
+package com.stormpath.spring.security.client
 
 import com.stormpath.sdk.client.ClientBuilder
 import org.junit.Before
