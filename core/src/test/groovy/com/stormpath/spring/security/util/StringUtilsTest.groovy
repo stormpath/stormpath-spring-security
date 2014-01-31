@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package com.stormpath.spring.security.util
 
 import org.junit.Test
@@ -22,26 +20,6 @@ import org.junit.Test
 import static org.junit.Assert.*
 
 class StringUtilsTest {
-
-    @Test
-    public void testHasLength() {
-        assertFalse StringUtils.hasLength(null)
-        assertFalse StringUtils.hasLength("")
-        assertFalse StringUtils.hasLength(new String(""))
-        assertTrue StringUtils.hasLength(new String(" "))
-        assertTrue StringUtils.hasLength("test")
-    }
-
-    @Test
-    public void testHasText() {
-        assertFalse StringUtils.hasText(null)
-        assertFalse StringUtils.hasText("")
-        assertFalse StringUtils.hasText(new String(""))
-        assertFalse StringUtils.hasText(new String(" "))
-        assertFalse StringUtils.hasText(new String("    "))
-        assertTrue StringUtils.hasText("test")
-        assertTrue StringUtils.hasText("test ")
-    }
 
     @Test
     public void tesClean() {

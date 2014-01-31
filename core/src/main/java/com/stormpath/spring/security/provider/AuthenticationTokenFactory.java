@@ -16,6 +16,7 @@
 
 package com.stormpath.spring.security.provider;
 
+import com.stormpath.sdk.account.Account;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -37,9 +38,10 @@ public interface AuthenticationTokenFactory {
      * @param credentials The credentials that prove the principal is correct. This is usually a password, but could be anything
      *                    relevant to the <code>AuthenticationManager</code>
      * @param authorities the authorities that the principal has been granted
-     * @return a <code>Authentication</code> object including credentials
+     * @param account the Stormpath Account corresponding to the principal
+     * @return a <code>AbstractAuthenticationToken</code> object including credentials
      *
      */
-    public Authentication createAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities);
+    public Authentication createAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities, Account account);
 
 }

@@ -16,12 +16,12 @@
 
 package com.stormpath.spring.security.provider;
 
+import com.stormpath.sdk.account.Account;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
-
 
 /**
  * A {@link com.stormpath.spring.security.provider.AuthenticationTokenFactory} implementation that creates simple representation
@@ -30,7 +30,9 @@ import java.util.Collection;
 public class UsernamePasswordAuthenticationTokenFactory implements AuthenticationTokenFactory {
 
     @Override
-    public Authentication createAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
-        return new UsernamePasswordAuthenticationToken(principal, credentials, authorities);
+    public Authentication createAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities, Account account) {
+        StormpathUserDetails userDetails = new StormpathUserDetails(principal.toString(), credentials.toString(), authorities, account);
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, credentials, userDetails.getAuthorities());
+        return authToken;
     }
 }

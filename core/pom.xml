@@ -23,7 +23,7 @@
     <parent>
         <groupId>com.stormpath.spring.security</groupId>
         <artifactId>stormpath-spring-security-root</artifactId>
-        <version>0.1.0</version>
+        <version>0.1.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

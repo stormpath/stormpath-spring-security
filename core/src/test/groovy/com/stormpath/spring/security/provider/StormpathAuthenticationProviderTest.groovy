@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package com.stormpath.spring.security.provider
 
 import com.stormpath.sdk.account.Account
+import com.stormpath.sdk.account.AccountStatus
 import com.stormpath.sdk.application.Application
 import com.stormpath.sdk.authc.AuthenticationRequest
 import com.stormpath.sdk.authc.AuthenticationResult
@@ -97,6 +95,7 @@ class StormpathAuthenticationProviderTest {
         def acctGivenName = 'John'
         def acctMiddleName = 'A'
         def acctSurname = 'Smith'
+        def acctStatus = AccountStatus.ENABLED
 
         def authentication = createStrictMock(UsernamePasswordAuthenticationToken)
         def client = createStrictMock(Client)
@@ -132,6 +131,14 @@ class StormpathAuthenticationProviderTest {
         })
         expect(authenticationResult.account).andReturn account
         expect(account.groups).andReturn groupList
+        expect(account.href).andReturn acctHref
+        expect(account.username).andReturn username
+        expect(account.email).andReturn email
+        expect(account.givenName).andReturn acctGivenName
+        expect(account.middleName).andReturn acctMiddleName
+        expect(account.surname).andReturn acctSurname
+        expect(account.getStatus()).andReturn acctStatus times 2
+
         expect(authentication.principal).andReturn username
         expect(authentication.credentials).andReturn password
         expect(groupList.iterator()).andReturn iterator
@@ -149,16 +156,26 @@ class StormpathAuthenticationProviderTest {
         authenticationProvider.accountGrantedAuthorityResolver = accountGrantedAuthorityResolver
         authenticationProvider.groupGrantedAuthorityResolver = groupGrantedAuthorityResolver
 
-        def info = authenticationProvider.authenticate(authentication)
+        Authentication info = authenticationProvider.authenticate(authentication)
 
         assertTrue info instanceof UsernamePasswordAuthenticationToken
         assertTrue info.authenticated
 
-        assertEquals username, info.principal
-        assertEquals password, info.credentials
+        assertEquals username, ((StormpathUserDetails)info.principal).username
+        assertEquals password, ((StormpathUserDetails)info.principal).password
         assertEquals 2, info.authorities.size()
         assertTrue info.authorities.contains(groupGrantedAuthority)
         assertTrue info.authorities.contains(accountGrantedAuthority)
+        assertEquals acctHref, ((StormpathUserDetails)info.principal).properties.get("href")
+        assertEquals username, ((StormpathUserDetails)info.principal).properties.get("username")
+        assertEquals email, ((StormpathUserDetails)info.principal).properties.get("email")
+        assertEquals acctGivenName, ((StormpathUserDetails)info.principal).properties.get("givenName")
+        assertEquals acctMiddleName, ((StormpathUserDetails)info.principal).properties.get("middleName")
+        assertEquals acctSurname, ((StormpathUserDetails)info.principal).properties.get("surname")
+        assertTrue(((StormpathUserDetails)info.principal).enabled)
+        assertTrue(((StormpathUserDetails)info.principal).accountNonLocked)
+        assertTrue(((StormpathUserDetails)info.principal).accountNonExpired)
+        assertTrue(((StormpathUserDetails)info.principal).credentialsNonExpired)
 
         verify authentication, client, dataStore, app, authenticationResult, account, groupList, iterator, group,
                 accountGrantedAuthorityResolver, groupGrantedAuthorityResolver, groupGrantedAuthority, accountGrantedAuthority
