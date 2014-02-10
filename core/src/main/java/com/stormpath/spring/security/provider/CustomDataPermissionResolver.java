@@ -16,8 +16,8 @@
 package com.stormpath.spring.security.provider;
 
 import com.stormpath.sdk.directory.CustomData;
-import com.stormpath.spring.security.authz.CustomDataGrantedAuthoritiesEditor;
-import org.springframework.security.core.GrantedAuthority;
+import com.stormpath.spring.security.authz.CustomDataPermissionsEditor;
+import com.stormpath.spring.security.authz.permission.Permission;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
@@ -25,9 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A {@code CustomDataGrantedAuthorityResolver} accesses a
- * {@link #getCustomDataFieldName() specific named field} value of a {@link com.stormpath.sdk.directory.CustomData} resource that contains
- * a {@code Set&lt;String&gt;} of Shiro permission Strings.
+ * A {@code CustomDataPermissionResolver} accesses a {@link #getCustomDataFieldName() specific named field} value of
+ * a {@link com.stormpath.sdk.directory.CustomData} resource that contains a {@code Set&lt;String&gt;} of Spring Security permission Strings.
  * <p/>
  * The permissions stored in that field are assumed to be assigned to the CustomData's owning entity (an
  * {@link com.stormpath.sdk.account.Account Account} or {@link com.stormpath.sdk.group.Group Group}).
@@ -35,38 +34,37 @@ import java.util.Set;
  * You can configure what named field is used to store the permissions via
  * {@link #setCustomDataFieldName(String) fieldName} property.
  * <h3>String to Permission Conversion</h3>
- * The Strings stored in the CustomData resource are converted to Shiro {@link Permission} instances via the
- * {@link #getGrantedAuthorityResolver() grantedAuthorityResolver} property.  Unless overridden, the default instance is a Shiro
- * {@link WildcardGrantedAuthorityResolver}.
+ * The Strings stored in the CustomData resource are converted to {@link com.stormpath.spring.security.authz.permission.Permission} instances via the
+ * {@link #getPermissionResolver() getPermissionResolver} property.  Unless overridden, the default instance is a
+ * {@link WildcardPermissionResolver}.
  *
  * @see AccountCustomDataPermissionResolver
  * @see GroupCustomDataPermissionResolver
- * @since 0.5
  */
-public class CustomDataGrantedAuthorityResolver {
+public class CustomDataPermissionResolver {
 
     private String customDataFieldName;
 
-    private GrantedAuthorityResolver grantedAuthorityResolver;
+    private PermissionResolver permissionResolver;
 
     /**
      * Creates a new instance, using the default {@link #getCustomDataFieldName() customDataFieldName} of
-     * {@code apacheShiroPermissions} and a default {@link WildcardGrantedAuthorityResolver}.
+     * {@code springSecurityPermissions} and a default {@link WildcardPermissionResolver}.
      */
-    public CustomDataGrantedAuthorityResolver() {
-        this.customDataFieldName = CustomDataGrantedAuthoritiesEditor.DEFAULT_CUSTOM_DATA_FIELD_NAME;
-        this.grantedAuthorityResolver = new WildcardGrantedAuthorityResolver();
+    public CustomDataPermissionResolver() {
+        this.customDataFieldName = CustomDataPermissionsEditor.DEFAULT_CUSTOM_DATA_FIELD_NAME;
+        this.permissionResolver = new WildcardPermissionResolver();
     }
 
     /**
      * Returns the name of the {@link com.stormpath.sdk.directory.CustomData} field used to store the {@code Set&lt;String&gt;}
      * of permissions.  The default name is
-     * {@code apacheShiroPermissions}, implying a {@code CustomData} JSON representation as follows:
+     * {@code springSecurityPermissions}, implying a {@code CustomData} JSON representation as follows:
      * <pre>
      * {
      *     ... any other of your own custom data properties ...,
      *
-     *     "apacheShiroPermissions": [
+     *     "springSecurityPermissions": [
      *         "perm1",
      *         "perm2",
      *         ...,
@@ -86,12 +84,12 @@ public class CustomDataGrantedAuthorityResolver {
     /**
      * Sets the name of the {@link com.stormpath.sdk.directory.CustomData} field used to store the {@code Set&lt;String&gt;}
      * of permissions.  The default name is
-     * {@code apacheShiroPermissions}, implying a {@code CustomData} JSON representation as follows:
+     * {@code springSecurityPermissions}, implying a {@code CustomData} JSON representation as follows:
      * <pre>
      * {
      *     ... any other of your own custom data properties ...,
      *
-     *     "apacheShiroPermissions": [
+     *     "springSecurityPermissions": [
      *         "perm1",
      *         "perm2",
      *         ...,
@@ -122,27 +120,27 @@ public class CustomDataGrantedAuthorityResolver {
     }
 
     /**
-     * Returns the {@link PermissionResolver} used to convert {@link #getCustomDataFieldName() stored permission strings}
-     * to Shiro {@link Permission} instances for {@link org.apache.shiro.subject.Subject Subject} authorization.
+     * Returns the {@link AccountPermissionResolver} used to convert {@link #getCustomDataFieldName() stored permission strings}
+     * to {@link Permission} instances for authorization.
      * <p/>
-     * The default / pre-configured instance is a {@link WildcardGrantedAuthorityResolver}.
+     * The default / pre-configured instance is a {@link WildcardPermissionResolver}.
      *
-     * @return the {@link PermissionResolver} used to convert {@link #getCustomDataFieldName() stored permission strings}
-     *         to Shiro {@link Permission} instances for {@link org.apache.shiro.subject.Subject Subject} authorization.
+     * @return the {@link AccountPermissionResolver} used to convert {@link #getCustomDataFieldName() stored permission strings}
+     *         to {@link Permission} instances for authorization.
      */
-    public GrantedAuthorityResolver getGrantedAuthorityResolver() {
-        return grantedAuthorityResolver;
+    public PermissionResolver getPermissionResolver() {
+        return permissionResolver;
     }
 
     /**
-     * Sets the {@link PermissionResolver} used to convert {@link #getCustomDataFieldName() stored permission strings}
-     * to Shiro {@link Permission} instances for {@link org.apache.shiro.subject.Subject Subject} authorization.
+     * Sets the {@link AccountPermissionResolver} used to convert {@link #getCustomDataFieldName() stored permission strings}
+     * to {@link Permission} instances for authorization.
      *
-     * @param grantedAuthorityResolver the {@link PermissionResolver} used to convert {@link #getCustomDataFieldName() stored permission strings}
-     *                           to Shiro {@link Permission} instances for {@link org.apache.shiro.subject.Subject Subject} authorization.
+     * @param permissionResolver the {@link AccountPermissionResolver} used to convert {@link #getCustomDataFieldName() stored permission strings}
+     *                           to {@link Permission} instances for authorization.
      */
-    public void setGrantedAuthorityResolver(GrantedAuthorityResolver grantedAuthorityResolver) {
-        this.grantedAuthorityResolver = grantedAuthorityResolver;
+    public void setPermissionResolver(PermissionResolver permissionResolver) {
+        this.permissionResolver = permissionResolver;
     }
 
     /**
@@ -166,26 +164,26 @@ public class CustomDataGrantedAuthorityResolver {
      * @see CustomDataPermissionsEditor
      */
     protected Set<String> getPermissionStrings(CustomData customData) {
-        return new CustomDataGrantedAuthoritiesEditor(customData)
+        return new CustomDataPermissionsEditor(customData)
                 .setFieldName(getCustomDataFieldName())
-                .getGrantedAuthorityStrings();
+                .getPermissionStrings();
     }
 
     /**
-     * Returns a set of Shiro {@link Permission} instances stored in the specified {@link com.stormpath.sdk.directory.CustomData} resource.  This
+     * Returns a set of {@link Permission} instances stored in the specified {@link com.stormpath.sdk.directory.CustomData} resource.  This
      * implementation will:
      * <ol>
      * <li>{@link #getPermissionStrings(com.stormpath.sdk.directory.CustomData) Get all permission strings} stored
      * in the CustomData instance</li>
      * <li>Loop over these strings, and for each one, create a {@link Permission} instance using the
-     * {@link #getGrantedAuthorityResolver() grantedAuthorityResolver} property.</li>
+     * {@link #getPermissionResolver() permissionResolver} property.</li>
      * <li>Return the total constructed Set of Permission instances to the caller.</li>
      * </ol>
      *
      * @param customData the CustomData instance that may contain permission strings to obtain
-     * @return a set of Shiro {@link Permission} instances stored in the specified {@link com.stormpath.sdk.directory.CustomData} resource.
+     * @return a set of {@link Permission} instances stored in the specified {@link com.stormpath.sdk.directory.CustomData} resource.
      */
-    protected Set<GrantedAuthority> getGrantedAuthorities(CustomData customData) {
+    protected Set<Permission> getPermissions(CustomData customData) {
 
         Set<String> permStrings = getPermissionStrings(customData);
 
@@ -193,15 +191,15 @@ public class CustomDataGrantedAuthorityResolver {
             return Collections.emptySet();
         }
 
-        GrantedAuthorityResolver grantedAuthorityResolver = getGrantedAuthorityResolver();
+        PermissionResolver permissionResolver = getPermissionResolver();
 
-        Set<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>(permStrings.size());
+        Set<Permission> permissions = new HashSet<Permission>(permStrings.size());
 
         for (String s : permStrings) {
-            GrantedAuthority grantedAuthority = grantedAuthorityResolver.resolveGrantedAuthority(s);
-            grantedAuthorities.add(grantedAuthority);
+            Permission permission = permissionResolver.resolvePermission(s);
+            permissions.add(permission);
         }
 
-        return grantedAuthorities;
+        return permissions;
     }
 }

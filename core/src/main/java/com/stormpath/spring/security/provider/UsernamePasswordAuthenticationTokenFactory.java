@@ -24,8 +24,11 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 
 /**
- * A {@link com.stormpath.spring.security.provider.AuthenticationTokenFactory} implementation that creates simple representation
- * of a username and password token.
+ * A {@link com.stormpath.spring.security.provider.AuthenticationTokenFactory} implementation that creates representation
+ * of a username and password token. The principal stored in the token is an instance of {@link StormpathUserDetails} which
+ * contains information about the Stormpath Account for the authenticated user, such as href, given name, username, etc.
+ *
+ * @since 0.2.0
  */
 public class UsernamePasswordAuthenticationTokenFactory implements AuthenticationTokenFactory {
 

@@ -15,21 +15,21 @@
  */
 package com.stormpath.spring.security.provider;
 
-import com.stormpath.sdk.account.Account;
-import org.springframework.security.core.GrantedAuthority;
+import com.stormpath.sdk.group.Group;
+import com.stormpath.spring.security.authz.permission.Permission;
 
 import java.util.Set;
 
 /**
- * A {@link CustomDataGrantedAuthorityResolver} implementation that merely delegates lookup logic to the parent
- * class, first calling {@link com.stormpath.sdk.account.Account#getCustomData() account.getCustomData()}.
+ * A {@link CustomDataPermissionResolver} implementation that merely delegates lookup logic to the parent
+ * class, first calling {@link com.stormpath.sdk.group.Group#getCustomData() group.getCustomData()}.
  *
- * @since 0.1.1
+ * @since 0.2.0
  */
-public class AccountCustomDataGrantedAuthorityResolver extends CustomDataGrantedAuthorityResolver implements AccountGrantedAuthorityResolver {
+public class GroupCustomDataPermissionResolver extends CustomDataPermissionResolver implements GroupPermissionResolver {
 
     @Override
-    public Set<GrantedAuthority> resolveGrantedAuthorities(Account account) {
-        return super.getGrantedAuthorities(account.getCustomData());
+    public Set<Permission> resolvePermissions(Group group) {
+        return super.getPermissions(group.getCustomData());
     }
 }

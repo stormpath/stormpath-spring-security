@@ -26,6 +26,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/**
+ * Models Stormpath account information retrieved by a {@link StormpathAuthenticationProvider}.
+ * <p>
+ * Note that this implementation is immutable.
+ *
+ * @since 0.2.0
+ */
 public class StormpathUserDetails implements UserDetails {
 
     private final String username;
@@ -43,9 +51,9 @@ public class StormpathUserDetails implements UserDetails {
         if (account == null) {
             throw new IllegalArgumentException("Account cannot be null.");
         }
-        this.username = username;
         this.password = password;
         this.stormpathUserDetails = createUnmodifiableMap(account);
+        this.username = account.getUsername();
         this.authorities = grantedAuthorities;
     }
 

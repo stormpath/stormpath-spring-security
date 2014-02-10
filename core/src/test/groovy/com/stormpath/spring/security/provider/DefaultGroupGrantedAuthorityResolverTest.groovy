@@ -18,7 +18,6 @@
 package com.stormpath.spring.security.provider
 
 import com.stormpath.sdk.group.Group
-import org.easymock.EasyMock
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test

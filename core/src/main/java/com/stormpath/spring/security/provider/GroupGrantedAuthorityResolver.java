@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.stormpath.spring.security.provider;
 
 import com.stormpath.sdk.group.Group;
@@ -28,7 +27,7 @@ import java.util.Set;
  * Spring Security checks these granted authorities to determine whether or not an {@link org.springframework.security.core.Authentication Authentication}
  * associated with the {@code Group} is permitted to do something.
  *
- * @see AccountGrantedAuthorityResolver
+ * @see com.stormpath.spring.security.provider.AccountGrantedAuthorityResolver
  */
 public interface GroupGrantedAuthorityResolver {
 
@@ -41,7 +40,7 @@ public interface GroupGrantedAuthorityResolver {
      * @param group the Stormpath {@code Group} to inspect to return its assigned Spring Security granted authorities.
      * @return a set of Spring Security {@link org.springframework.security.core.GrantedAuthority GrantedAuthority}s assigned to the
      *          group, to be used by Spring Security for runtime authorization checks.
-     * @see AccountGrantedAuthorityResolver
+     * @see com.stormpath.spring.security.provider.AccountGrantedAuthorityResolver
      */
     Set<GrantedAuthority> resolveGrantedAuthorities(Group group);
 

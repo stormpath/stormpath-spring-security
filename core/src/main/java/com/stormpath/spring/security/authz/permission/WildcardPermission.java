@@ -1,46 +1,39 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Copyright 2014 Stormpath, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-package com.stormpath.spring.security.provider;
+package com.stormpath.spring.security.authz.permission;
 
 import com.stormpath.spring.security.util.CollectionUtils;
-import org.springframework.security.core.GrantedAuthority;
+import com.stormpath.spring.security.util.StringUtils;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
- * A <code>WildcardGrantedAuthority</code> is a very flexible granted authority construct supporting multiple levels of
- * granted authority matching. However, most people will probably follow some standard conventions as explained below.
+ * A <code>WildcardPermission</code> is a very flexible permission construct supporting multiple levels of
+ * permission matching. However, most people will probably follow some standard conventions as explained below.
  * <p/>
  * <h3>Simple Usage</h3>
  * <p/>
- * In the simplest form, <code>WildcardGrantedAuthority</code> can be used as a simple permission string. You could grant a
+ * In the simplest form, <code>WildcardPermission</code> can be used as a simple permission string. You could grant a
  * user an &quot;editNewsletter&quot; permission and then check to see if the user has the editNewsletter
  * permission by calling
  * <p/>
- * <code>subject.isPermitted(&quot;editNewsletter&quot;)</code>
- * <p/>
- * This is (mostly) equivalent to
- * <p/>
- * <code>subject.isPermitted( new WildcardGrantedAuthority(&quot;editNewsletter&quot;) )</code>
- * <p/>
- * but more on that later.
+ * <code>permission.implies(&quot;editNewsletter&quot;)</code>
  * <p/>
  * The simple permission string may work for simple applications, but it requires you to have permissions like
  * <code>&quot;viewNewsletter&quot;</code>, <code>&quot;deleteNewsletter&quot;</code>,
@@ -48,13 +41,13 @@ import java.util.*;
  * using the wildcard character (giving this class its name), which means they have <em>all</em> permissions. But
  * using this approach there's no way to just say a user has &quot;all newsletter permissions&quot;.
  * <p/>
- * For this reason, <code>WildcardGrantedAuthority</code> supports multiple <em>levels</em> of permissioning.
+ * For this reason, <code>WildcardPermission</code> supports multiple <em>levels</em> of permissioning.
  * <p/>
  * <h3>Multiple Levels</h3>
  * <p/>
- * WildcardGrantedAuthority</code> also supports the concept of multiple <em>levels</em>.  For example, you could
+ * WildcardPermission</code> also supports the concept of multiple <em>levels</em>.  For example, you could
  * restructure the previous simple example by granting a user the permission <code>&quot;newsletter:edit&quot;</code>.
- * The colon in this example is a special character used by the <code>WildcardGrantedAuthority</code> that delimits the
+ * The colon in this example is a special character used by the <code>WildcardPermission</code> that delimits the
  * next token in the permission.
  * <p/>
  * In this example, the first token is the <em>domain</em> that is being operated on
@@ -64,7 +57,7 @@ import java.util.*;
  * <em>domain</em>. Then you could check to see if the user has the <code>&quot;newsletter:create&quot;</code>
  * permission by calling
  * <p/>
- * <code>subject.isPermitted(&quot;newsletter:create&quot;)</code>
+ * <code>permission.implies(&quot;newsletter:create&quot;)</code>
  * <p/>
  * (which would return true).
  * <p/>
@@ -76,7 +69,7 @@ import java.util.*;
  * <p/>
  * <h3>Instance-level Access Control</h3>
  * <p/>
- * Another common usage of the <code>WildcardGrantedAuthority</code> is to model instance-level Access Control Lists.
+ * Another common usage of the <code>WildcardPermission</code> is to model instance-level Access Control Lists.
  * In this scenario you use three tokens - the first is the <em>domain</em>, the second is the <em>action</em>, and
  * the third is the <em>instance</em> you are acting on.
  * <p/>
@@ -91,51 +84,53 @@ import java.util.*;
  * To perform checks against these instance-level permissions, the application should include the instance ID in the
  * permission check like so:
  * <p/>
- * <code>subject.isPermitted( &quot;newsletter:edit:13&quot; )</code>
+ * <code>permission.implies( &quot;newsletter:edit:13&quot; )</code>
  * <p/>
  * There is no limit to the number of tokens that can be used, so it is up to your imagination in terms of ways that
- * this could be used in your application.  However, the Shiro team likes to standardize some common usages shown
- * above to help people get started and provide consistency in the Shiro community.
+ * this could be used in your application.
  *
- * @since 0.1.1
+ * @since 0.2.0
  */
-public class WildcardGrantedAuthority implements GrantedAuthority, Serializable {
+public class WildcardPermission implements Permission, Serializable {
 
     //TODO - JavaDoc methods
 
     /*--------------------------------------------
     |             C O N S T A N T S             |
     ============================================*/
-    protected static final String WILDCARD_TOKEN = "*";
-    protected static final String PART_DIVIDER_TOKEN = ":";
-    protected static final String SUBPART_DIVIDER_TOKEN = ",";
+    public static final String WILDCARD_TOKEN = "*";
+    public static final String PART_DIVIDER_TOKEN = ":";
+    public static final String SUBPART_DIVIDER_TOKEN = ",";
     protected static final boolean DEFAULT_CASE_SENSITIVE = false;
 
     /*--------------------------------------------
     |    I N S T A N C E   V A R I A B L E S    |
     ============================================*/
     private List<Set<String>> parts;
+    private final boolean caseSensitive;
 
     /*--------------------------------------------
     |         C O N S T R U C T O R S           |
     ============================================*/
     /**
-     * Default no-arg constructor for subclasses only - end-user developers instantiating Permission instances must
-     * provide a wildcard string at a minimum, since Permission instances are immutable once instantiated.
+     * Default no-arg constructor for subclasses only - end-user developers instantiating instances must
+     * provide a wildcard string at a minimum, since these instances are immutable once instantiated.
      * <p/>
-     * Note that the WildcardGrantedAuthority class is very robust and typically subclasses are not necessary unless you
+     * Note that the WildcardPermission class is very robust and typically subclasses are not necessary unless you
      * wish to create type-safe Permission objects that would be used in your application, such as perhaps a
      * {@code UserPermission}, {@code SystemPermission}, {@code PrinterPermission}, etc.  If you want such type-safe
-     * permission usage, consider subclassing the {@link DomainGrantedAuthority DomainGrantedAuthority} class for your needs.
+     * permission usage, consider subclassing the {@link DomainPermission DomainPermission} class for your needs.
      */
-    protected WildcardGrantedAuthority() {
+    protected WildcardPermission() {
+        this.caseSensitive = DEFAULT_CASE_SENSITIVE;
     }
 
-    public WildcardGrantedAuthority(String wildcardString) {
+    public WildcardPermission(String wildcardString) {
         this(wildcardString, DEFAULT_CASE_SENSITIVE);
     }
 
-    public WildcardGrantedAuthority(String wildcardString, boolean caseSensitive) {
+    public WildcardPermission(String wildcardString, boolean caseSensitive) {
+        this.caseSensitive = caseSensitive;
         setParts(wildcardString, caseSensitive);
     }
 
@@ -155,9 +150,6 @@ public class WildcardGrantedAuthority implements GrantedAuthority, Serializable 
         this.parts = new ArrayList<Set<String>>();
         for (String part : parts) {
             Set<String> subparts = CollectionUtils.asSet(part.split(SUBPART_DIVIDER_TOKEN));
-            if (!caseSensitive) {
-                subparts = lowercase(subparts);
-            }
             if (subparts.isEmpty()) {
                 throw new IllegalArgumentException("Wildcard string cannot contain parts with only dividers. Make sure permission strings are properly formatted.");
             }
@@ -169,12 +161,8 @@ public class WildcardGrantedAuthority implements GrantedAuthority, Serializable 
         }
     }
 
-    private Set<String> lowercase(Set<String> subparts) {
-        Set<String> lowerCasedSubparts = new LinkedHashSet<String>(subparts.size());
-        for (String subpart : subparts) {
-            lowerCasedSubparts.add(subpart.toLowerCase());
-        }
-        return lowerCasedSubparts;
+    private boolean isCaseSensitive() {
+        return this.caseSensitive;
     }
 
     /*--------------------------------------------
@@ -193,28 +181,109 @@ public class WildcardGrantedAuthority implements GrantedAuthority, Serializable 
         return toString();
     }
 
+    /**
+     * Only supports comparisons with other WildcardPermissions.
+     *
+     * @param p the WildcardPermission to be compared to
+     * @return true if the given WildcardPermission matches the permission specified by this permission
+     */
+    @Override
+    public boolean implies(Permission p) {
+        // By default only supports comparisons with other WildcardPermissions
+        if (!(p instanceof WildcardPermission)) {
+            return false;
+        }
+
+        WildcardPermission wp = (WildcardPermission) p;
+
+        List<Set<String>> otherParts = wp.getParts();
+
+        int i = 0;
+        for (Set<String> otherPart : otherParts) {
+            // If this permission has less parts than the other permission, everything after the number of parts contained
+            // in this permission is automatically implied, so return true
+            if (getParts().size() - 1 < i) {
+                return true;
+            } else {
+                Set<String> part = getParts().get(i);
+
+                if(isCaseSensitive()) {
+                    // Let's do a case sensitive comparison
+                    if (!compareCaseSensitive(part, otherPart)) {
+                        return false;
+                    }
+                } else {
+                    // Let's do a case insensitive comparison
+                    if(! compareCaseInsensitive(part, otherPart)) {
+                        return false;
+                    }
+                }
+                i++;
+            }
+        }
+
+        // If this permission has more parts than the other parts, only imply it if all of the other parts are wildcards
+        for (; i < getParts().size(); i++) {
+            Set<String> part = getParts().get(i);
+            if (!part.contains(WILDCARD_TOKEN)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public String toString() {
         StringBuilder buffer = new StringBuilder();
-        for (Set<String> part : parts) {
+        for (Set<String> part : this.getParts()) {
             if (buffer.length() > 0) {
-                buffer.append(":");
+                buffer.append(PART_DIVIDER_TOKEN);
             }
-            buffer.append(part);
+            buffer.append(StringUtils.join(part.iterator(), SUBPART_DIVIDER_TOKEN));
         }
         return buffer.toString();
     }
 
     public boolean equals(Object o) {
-        if (o instanceof WildcardGrantedAuthority) {
-            WildcardGrantedAuthority wp = (WildcardGrantedAuthority) o;
+        if (o instanceof WildcardPermission) {
+            WildcardPermission wp = (WildcardPermission) o;
             return parts.equals(wp.parts);
         }
         return false;
+
     }
 
     public int hashCode() {
         return parts.hashCode();
     }
 
+    private boolean compareCaseSensitive(Set<String> part, Set<String> otherPart) {
+        if (!part.contains(WILDCARD_TOKEN) && !part.containsAll(otherPart)) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean compareCaseInsensitive(Set<String> part, Set<String> otherPart) {
+        if (!part.contains(WILDCARD_TOKEN)) {
+            boolean foundSubOtherPart = false;
+            for(String subOtherPart : otherPart){
+                foundSubOtherPart = false;
+                for(String subPart : part){
+                    if(subPart.equalsIgnoreCase(subOtherPart)) {
+                        foundSubOtherPart = true;
+                        break;
+                    }
+                }
+                if(!foundSubOtherPart) {
+                    return false;
+                }
+            }
+            if(!foundSubOtherPart) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 }

@@ -16,7 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.stormpath.spring.security.provider;
+
+/*
+ * Copyright 2014 Stormpath, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.stormpath.spring.security.authz.permission;
 
 import com.stormpath.spring.security.util.StringUtils;
 
@@ -30,7 +46,7 @@ import java.util.Set;
  *
  * @since 0.1.1
  */
-public class DomainGrantedAuthority extends WildcardGrantedAuthority {
+public class DomainPermission extends WildcardPermission {
 
     private String domain;
     private Set<String> actions;
@@ -41,43 +57,43 @@ public class DomainGrantedAuthority extends WildcardGrantedAuthority {
     /**
      * Creates a domain permission with *all* actions for *all* targets;
      */
-    public DomainGrantedAuthority() {
+    public DomainPermission() {
         this.domain = getDomain(getClass());
         setParts(getDomain(getClass()));
     }
 
-    public DomainGrantedAuthority(String actions) {
+    public DomainPermission(String actions) {
         domain = getDomain(getClass());
         this.actions = StringUtils.splitToSet(actions, SUBPART_DIVIDER_TOKEN);
         encodeParts(domain, actions, null);
     }
 
-    public DomainGrantedAuthority(String actions, String targets) {
+    public DomainPermission(String actions, String targets) {
         this.domain = getDomain(getClass());
         this.actions = StringUtils.splitToSet(actions, SUBPART_DIVIDER_TOKEN);
         this.targets = StringUtils.splitToSet(targets, SUBPART_DIVIDER_TOKEN);
         encodeParts(this.domain, actions, targets);
     }
 
-    protected DomainGrantedAuthority(Set<String> actions, Set<String> targets) {
+    protected DomainPermission(Set<String> actions, Set<String> targets) {
         this.domain = getDomain(getClass());
         setParts(domain, actions, targets);
     }
 
     private void encodeParts(String domain, String actions, String targets) {
-        if (!org.springframework.util.StringUtils.hasText(domain)) {
+        if (!StringUtils.hasText(domain)) {
             throw new IllegalArgumentException("domain argument cannot be null or empty.");
         }
         StringBuilder sb = new StringBuilder(domain);
 
-        if (!org.springframework.util.StringUtils.hasText(actions)) {
-            if (org.springframework.util.StringUtils.hasText(targets)) {
+        if (!StringUtils.hasText(actions)) {
+            if (StringUtils.hasText(targets)) {
                 sb.append(PART_DIVIDER_TOKEN).append(WILDCARD_TOKEN);
             }
         } else {
             sb.append(PART_DIVIDER_TOKEN).append(actions);
         }
-        if (org.springframework.util.StringUtils.hasText(targets)) {
+        if (StringUtils.hasText(targets)) {
             sb.append(PART_DIVIDER_TOKEN).append(targets);
         }
         setParts(sb.toString());
@@ -92,7 +108,7 @@ public class DomainGrantedAuthority extends WildcardGrantedAuthority {
         this.targets = targets;
     }
 
-    protected String getDomain(Class<? extends DomainGrantedAuthority> clazz) {
+    protected String getDomain(Class<? extends DomainPermission> clazz) {
         String domain = clazz.getSimpleName().toLowerCase();
         //strip any trailing 'permission' text from the name (as all subclasses should have been named):
         int index = domain.lastIndexOf("permission");

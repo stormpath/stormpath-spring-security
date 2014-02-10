@@ -24,6 +24,7 @@ import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.group.Group;
 import com.stormpath.sdk.group.GroupList;
 import com.stormpath.sdk.resource.ResourceException;
+import com.stormpath.spring.security.authz.permission.Permission;
 import com.stormpath.spring.security.util.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -51,36 +52,108 @@ import java.util.Set;
  * Stormpath Accounts and Groups can be translated to Spring Security granted authorities via the following components.  You
  * can implement implementations of these interfaces and plug them into this provider for custom translation behavior:
  * <ul>
+ * <li>{@link AccountPermissionResolver AccountPermissionResolver}</li>
+ * <li>{@link GroupPermissionResolver GroupPermissionResolver}</li>
  * <li>{@link AccountGrantedAuthorityResolver AccountGrantedAuthorityResolver}</li>
  * <li>{@link GroupGrantedAuthorityResolver GroupGrantedAuthorityResolver}</li>
  * </ul>
  * <p/>
- * This provider implementation pre-configures the {@code groupGrantedAuthorityResolver} to be a {@link DefaultGroupGrantedAuthorityResolver}
- * instance (which can also be configured).  The other interface, if used, must be implemented as it is specific to your
- * application's data model.
+ * This provider implementation comes pre-configured with the following default implementations, which should suit most
+ * Spring Security+Stormpath use cases:
+ *
+ * <table>
+ *     <tr>
+ *         <th>Property</th>
+ *         <th>Pre-configured Implementation</th>
+ *         <th>Notes</th>
+ *     </tr>
+ *     <tr>
+ *         <td>{@link #getGroupGrantedAuthorityResolver() groupGrantedAuthorityResolver}</td>
+ *         <td>{@link DefaultGroupGrantedAuthorityResolver}</td>
+ *         <td>Each Stormpath Group can be represented as up to three possible Spring Security granted authorities (with
+ *             1-to-1 being the default).  See the {@link DefaultGroupGrantedAuthorityResolver} JavaDoc for more info.</td>
+ *     </tr>
+ *     <tr>
+ *         <td>{@link #getAccountGrantedAuthorityResolver() accountGrantedAuthorityResolver}</td>
+ *         <td>None</td>
+ *         <td>Most Spring Security+Stormpath applications should only need the above {@code DefaultGroupGrantedAuthorityResolver}
+ *             when using Stormpath Groups as Spring Security granted authorities.  This authentication provider implementation
+ *             already acquires the {@link com.stormpath.sdk.account.Account#getGroups() account's assigned groups} and resolves the group
+ *             granted authorities via the above {@code groupGrantedAuthorityResolver}.  <b>You only need to configure this property
+ *             if you need an additional way to represent an account's assigned granted authorities that cannot already be
+ *             represented via Stormpath account &lt;--&gt; group associations.</td>
+ *     </tr>
+ *     <tr>
+ *         <td>{@link #getGroupPermissionResolver() groupPermissionResolver}</td>
+ *         <td>{@link GroupCustomDataPermissionResolver}</td>
+ *         <td>The {@code GroupCustomDataPermissionResolver} assumes the convention that a Group's assigned permissions
+ *         are stored as a nested {@code Set&lt;String&gt;} field in the
+ *         {@link com.stormpath.sdk.group.Group#getCustomData() group's CustomData resource}.  See the
+ *         {@link GroupCustomDataPermissionResolver} JavaDoc for more information.</td>
+ *     </tr>
+ *     <tr>
+ *         <td>{@link #getAccountPermissionResolver() accountPermissionResolver}</td>
+ *         <td>{@link AccountCustomDataPermissionResolver}</td>
+ *         <td>The {@code AccountCustomDataPermissionResolver} assumes the convention that an Account's directly
+ *         assigned permissions are stored as a nested {@code Set&lt;String&gt;} field in the
+ *         {@link com.stormpath.sdk.account.Account#getCustomData() account's CustomData resource}.  See the
+ *         {@link AccountCustomDataPermissionResolver} JavaDoc for more information.</td>
+ *     </tr>
+ * </table>
+ * <h4>Transitive Permissions</h4>
+ * This implementation represents an Account's granted permissions as all permissions that:
+ * <ol>
+ *     <li>Are assigned directly to the Account itself</li>
+ *     <li>Are assigned to any of the Account's assigned Groups</li>
+ * </ol>
+ * <h4>Assigning Permissions</h4>
+ * A Spring Security Authentication Provider is a read-only component - it typically does not support account/group/permission
+ * updates directly.
+ * Therefore, you make modifications to these components by interacting with the data store (e.g. Stormpath) directly.
+ * <p/>
+ * The {@link com.stormpath.spring.security.authz.CustomDataPermissionsEditor CustomDataPermissionsEditor} has been provided for
+ * this purpose. For example, assuming the convention of storing permissions in an account or group's CustomData
+ * resource:
+ * <pre>
+ * Account account = getAccount();
+ * new CustomDataPermissionsEditor(account.getCustomData())
+ *     .append("someResourceType:anIdentifier:anAction")
+ *     .append("anotherResourceType:anIdentifier:*")
+ *     .remove("oldPermission");
+ * account.save();
+ * </pre>
+ * Again, the default {@link #getGroupPermissionResolver() groupPermissionResolver} and
+ * {@link #getAccountPermissionResolver() accountPermissionResolver} instances assume this CustomData storage strategy,
+ * so if you use them, the above {@code CustomDataPermissionsEditor} will work easily.
  * <p/>
  * When the given credentials are successfully authenticated an {@link AuthenticationTokenFactory AuthenticationTokenFactory} instance
  * is used to create an authenticated token to be returned to the provider's client. By default, the {@link UsernamePasswordAuthenticationTokenFactory}
- * is used, constructing {@code UsernamePasswordAuthenticationToken} objects. It can be easily modify by creating a new
+ * is used, constructing {@code UsernamePasswordAuthenticationToken} objects. By default, the principal stored in this token is a {@link StormpathUserDetails}
+ * containing Stormpath account's properties like href, given name, username, etc. It can be easily modified by creating a new
  * <code>AuthenticationTokenFactory</code> and setting it to this provider via {@link #setAuthenticationTokenFactory(AuthenticationTokenFactory)}.
  *
  * @see AccountGrantedAuthorityResolver
  * @see GroupGrantedAuthorityResolver
  * @see AuthenticationTokenFactory
+ * @see StormpathUserDetails
  */
 public class StormpathAuthenticationProvider implements AuthenticationProvider {
 
     private Client client;
     private String applicationRestUrl;
     private GroupGrantedAuthorityResolver groupGrantedAuthorityResolver;
+    private GroupPermissionResolver groupPermissionResolver;
     private AccountGrantedAuthorityResolver accountGrantedAuthorityResolver;
+    private AccountPermissionResolver accountPermissionResolver;
     private AuthenticationTokenFactory authenticationTokenFactory;
 
     private Application application; //acquired via the client at runtime, not configurable by the StormpathAuthenticationProvider user
 
     public StormpathAuthenticationProvider() {
-        this.groupGrantedAuthorityResolver = new DefaultGroupGrantedAuthorityResolver();
-        this.authenticationTokenFactory = new UsernamePasswordAuthenticationTokenFactory();
+        setGroupGrantedAuthorityResolver(new DefaultGroupGrantedAuthorityResolver());
+        setGroupPermissionResolver(new GroupCustomDataPermissionResolver());
+        setAccountPermissionResolver(new AccountCustomDataPermissionResolver());
+        setAuthenticationTokenFactory(new UsernamePasswordAuthenticationTokenFactory());
     }
 
     /**
@@ -173,10 +246,58 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
     }
 
     /**
+     * Returns the {@link GroupPermissionResolver} used to discover a Stormpath Groups' assigned permissions.  Unless
+     * overridden via {@link #setGroupPermissionResolver(GroupPermissionResolver) setGroupPermissionResolver}, the
+     * default instance is a {@link GroupCustomDataPermissionResolver}.
      *
-     * Returns the {@link AccountGrantedAuthorityResolver} used to discover a Stormpath Account's assigned permissions.  This
-     * is {@code null} by default and must be configured based on your application's needs. Unless overridden, the default instance
-     * is a {@link UsernamePasswordAuthenticationTokenFactory}.
+     * @return the {@link GroupPermissionResolver} used to discover a Stormpath Groups' assigned permissions
+     * @since 0.2.0
+     */
+    public GroupPermissionResolver getGroupPermissionResolver() {
+        return groupPermissionResolver;
+    }
+
+    /**
+     * Sets the {@link GroupPermissionResolver} used to discover a Stormpath Groups' assigned permissions.  Unless
+     * overridden, the default instance is a {@link GroupCustomDataPermissionResolver}.
+     *
+     * @param groupPermissionResolver the {@link GroupPermissionResolver} used to discover a Stormpath Groups' assigned
+     *                                permissions
+     * @since 0.2.0
+     */
+    public void setGroupPermissionResolver(GroupPermissionResolver groupPermissionResolver) {
+        this.groupPermissionResolver = groupPermissionResolver;
+    }
+
+    /**
+     * Returns the {@link AccountPermissionResolver} used to discover a Stormpath Account's directly-assigned
+     * permissions.  Unless overridden via
+     * {@link #setAccountPermissionResolver(AccountPermissionResolver) setAccountPermissionResolver}, the default
+     * instance is a {@link AccountCustomDataPermissionResolver}.
+     *
+     * @return the {@link AccountPermissionResolver} used to discover a Stormpath Account's assigned permissions.
+     * @since 0.2.0
+     */
+    public AccountPermissionResolver getAccountPermissionResolver() {
+        return accountPermissionResolver;
+    }
+
+    /**
+     * Sets the {@link AccountPermissionResolver} used to discover a Stormpath Account's assigned permissions.  Unless
+     * overridden, the default instance is a {@link AccountCustomDataPermissionResolver}.
+     *
+     * @param accountPermissionResolver the {@link AccountPermissionResolver} used to discover a Stormpath Account's
+     *                                  assigned permissions
+     * @since 0.2.0
+     */
+    public void setAccountPermissionResolver(AccountPermissionResolver accountPermissionResolver) {
+        this.accountPermissionResolver = accountPermissionResolver;
+    }
+
+    /**
+     *
+     * Returns the {@link AccountGrantedAuthorityResolver} used to discover a Stormpath Account's assigned permissions. Unless
+     * overridden, the default instance is a {@link UsernamePasswordAuthenticationTokenFactory}.
      *
      * @return the token factory to be used when creating tokens for the successfully authenticated credentials.
      */
@@ -246,9 +367,6 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
             request.clear();
         }
 
-//        Authentication authToken = this.authenticationTokenFactory.createAuthenticationToken(
-//                authentication.getPrincipal(), authentication.getCredentials(), getGrantedAuthorities(account), account);
-
         Authentication authToken = this.authenticationTokenFactory.createAuthenticationToken(
                 authentication.getPrincipal(), authentication.getCredentials(), getGrantedAuthorities(account), account);
 
@@ -285,22 +403,25 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
     }
 
     protected Collection<GrantedAuthority> getGrantedAuthorities(Account account) {
+        Collection<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>();
 
         GroupList groups = account.getGroups();
 
-        if (groups == null) {
-            return null;
-        }
-
-        Collection<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>();
-
         for (Group group : groups) {
-            Set<GrantedAuthority> groupRoles = resolveGrantedAuthorities(group);
-            grantedAuthorities.addAll(groupRoles);
+                Set<GrantedAuthority> groupGrantedAuthorities = resolveGrantedAuthorities(group);
+                grantedAuthorities.addAll(groupGrantedAuthorities);
+
+                Set<Permission> groupPermissions = resolvePermissions(group);
+                grantedAuthorities.addAll(groupPermissions);
         }
 
-        Set<GrantedAuthority> accountRoles = resolveGrantedAuthorities(account);
-        grantedAuthorities.addAll(accountRoles);
+        Set<GrantedAuthority> accountGrantedAuthorities = resolveGrantedAuthorities(account);
+        grantedAuthorities.addAll(accountGrantedAuthorities);
+
+        Set<Permission> accountPermissions = resolvePermissions(account);
+        for (GrantedAuthority permission : accountPermissions) {
+            grantedAuthorities.add(permission);
+        }
 
         return grantedAuthorities;
     }
@@ -318,5 +439,22 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
         }
         return Collections.emptySet();
     }
+
+    //since 0.1.1
+    private Set<Permission> resolvePermissions(Group group) {
+        if (groupPermissionResolver != null) {
+            return groupPermissionResolver.resolvePermissions(group);
+        }
+        return Collections.emptySet();
+    }
+
+    //since 0.1.1
+    private Set<Permission> resolvePermissions(Account account) {
+        if (accountPermissionResolver != null) {
+            return accountPermissionResolver.resolvePermissions(account);
+        }
+        return Collections.emptySet();
+    }
+
 
 }

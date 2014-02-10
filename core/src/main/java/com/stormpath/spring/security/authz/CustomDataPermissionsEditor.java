@@ -17,44 +17,46 @@ package com.stormpath.spring.security.authz;
 
 import com.stormpath.sdk.directory.CustomData;
 import com.stormpath.sdk.lang.Assert;
-import com.stormpath.spring.security.util.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
 /**
- * A {@code CustomDataGrantedAuthoritiesEditor} can read or modify a collection of Spring Security granted authority Strings stored in a
- * {@link com.stormpath.sdk.directory.CustomData} resource.  This is used to support a common convention for Spring Security+Stormpath applications: you can
- * assign Spring Security granted authority to an {@link com.stormpath.sdk.account.Account} or a {@link com.stormpath.sdk.group.Group} by storing those granted
- * authorities in the respective account or group's {@link com.stormpath.sdk.directory.CustomData} map.
+ * A {@code CustomDataPermissionsEditor} can read or modify a collection of permission Strings stored in a
+ * {@link com.stormpath.sdk.directory.CustomData} resource.  This is used to support a common convention for Spring Security+Stormpath
+ * applications: you can assign Spring Security granted authority to an {@link com.stormpath.sdk.account.Account} or
+ * a {@link com.stormpath.sdk.group.Group} by storing those granted authorities in the respective account or
+ * group's {@link com.stormpath.sdk.directory.CustomData} map. Let's recall that a
+ * {@link com.stormpath.spring.security.authz.permission.Permission Permission} is also a {@link org.springframework.security.core.GrantedAuthority
+ * GrantedAuthority} with a customizable operation to carry out comparisons:
+ * {@link com.stormpath.spring.security.authz.permission.Permission#implies(com.stormpath.spring.security.authz.permission.Permission)}.
  * <h3>Usage</h3>
- * You may use this component to 'wrap' a CustomData instance, and it will read or modify the CustomData's granted authorities
+ * You may use this component to 'wrap' a CustomData instance, and it will read or modify the CustomData's permission
  * Set as necessary.  This implementation assumes a single CustomData field that contains a Set of Strings.
  * <p/>
  * For example:
  * <pre>
  *     CustomData data = account.getCustomData();
- *     new CustomDataGrantedAuthoritiesEditor(customData)
+ *     new CustomDataPermissionsEditor(customData)
  *         .append("user:1234:edit")
  *         .append("document:*")
  *         .remove("printer:*:print");
  *     data.save();
  * </pre>
- * Invoking this code would remove the first two granted authorities and remove the 3rd.
+ * Invoking this code would remove the first two permission and remove the 3rd.
  * <p/>
- * <b>Note however that manipulating
- * the granted authorities Set only makes changes locally.  You must call
+ * <b>Note however that manipulating the permission Set only makes changes locally.  You must call
  * {@code customData.}{@link com.stormpath.sdk.directory.CustomData#save() save()} (or account.save() or group.save())
  * to persist the changes back to Stormpath.</b>
  *
  * <h3>Field Name</h3>
- * This implementation assumes a CustomData field named {@code springSecurityGrantedAuthorities} to store the Set of Spring Security
+ * This implementation assumes a CustomData field named {@code springSecurityPermissions} to store the Set of Spring Security
  * granted authorities, implying the following CustomData JSON structure:
  * <pre>
  * {
  *     ... any other of your own custom data properties ...,
  *
- *     "springSecurityGrantedAuthorities": [
+ *     "springSecurityPermissions": [
  *         "perm1",
  *         "perm2",
  *         ...,
@@ -78,35 +80,35 @@ import java.util.*;
  * }
  * </pre>
  *
- * @since 0.5
+ * @since 0.2.0
  */
-public class CustomDataGrantedAuthoritiesEditor implements GrantedAuthoritiesEditor {
+public class CustomDataPermissionsEditor implements PermissionsEditor {
 
-    public static final String DEFAULT_CUSTOM_DATA_FIELD_NAME = "springSecurityGrantedAuthorities";
+    public static final String DEFAULT_CUSTOM_DATA_FIELD_NAME = "springSecurityPermissions";
 
     private final CustomData CUSTOM_DATA;
 
     private String fieldName = DEFAULT_CUSTOM_DATA_FIELD_NAME;
 
     /**
-     * Creates a new CustomDataGrantedAuthoritiesEditor that will delegate to the specified {@link com.stormpath.sdk.directory.CustomData} instance.
+     * Creates a new CustomDataPermissionsEditor that will delegate to the specified {@link com.stormpath.sdk.directory.CustomData} instance.
      *
      * @param customData the CustomData instance that may store a Set of spring security granted authority strings.
      */
-    public CustomDataGrantedAuthoritiesEditor(CustomData customData) {
+    public CustomDataPermissionsEditor(CustomData customData) {
         Assert.notNull(customData, "CustomData argument cannot be null.");
         this.CUSTOM_DATA = customData;
     }
 
     /**
      * Returns the name of the {@link com.stormpath.sdk.directory.CustomData} field used to store the {@code Set&lt;String&gt;}
-     * of granted authorities.  The default name is
-     * {@code springSecurityGrantedAuthorities}, implying a {@code CustomData} JSON representation as follows:
+     * of permissions.  The default name is
+     * {@code springSecurityPermissions}, implying a {@code CustomData} JSON representation as follows:
      * <pre>
      * {
      *     ... any other of your own custom data properties ...,
      *
-     *     "springSecurityGrantedAuthorities": [
+     *     "springSecurityPermissions": [
      *         "perm1",
      *         "perm2",
      *         ...,
@@ -125,13 +127,13 @@ public class CustomDataGrantedAuthoritiesEditor implements GrantedAuthoritiesEdi
 
     /**
      * Sets the name of the {@link com.stormpath.sdk.directory.CustomData} field used to store the {@code Set&lt;String&gt;}
-     * of granted authorities.  The default name is
-     * {@code springSecurityGrantedAuthorities}, implying a {@code CustomData} JSON representation as follows:
+     * of permissions.  The default name is {@code springSecurityPermissions}, implying a {@code CustomData} JSON
+     * representation as follows:
      * <pre>
      * {
      *     ... any other of your own custom data properties ...,
      *
-     *     "springSecurityGrantedAuthorities": [
+     *     "springSecurityPermissions": [
      *         "perm1",
      *         "perm2",
      *         ...,
@@ -154,52 +156,62 @@ public class CustomDataGrantedAuthoritiesEditor implements GrantedAuthoritiesEdi
      * }
      * </pre>
      * <h3>Usage Warning</h3>
-     * If you change this value, you will also need to adjust your {@code ApplicationRealm} instance's configuration
-     * to reflect this name so it can continue to function - the realm reads the same {@code CustomData} field, so
+     * If you change this value, you will also need to adjust your {@code AuthenticationProvider} instance's configuration
+     * to reflect this name so it can continue to function - the provider reads the same {@code CustomData} field, so
      * they must be identical to ensure both read and write scenarios access the same field.
      * <p/>
-     * For example, if using {@code shiro.ini}:
+     * For example, when using Spring xml configuration:
      * <pre>
-     * stormpathRealm.groupGrantedAuthorityResolver.customDataFieldName = myApplicationPermissions
-     * stormpathRealm.accountGrantedAuthorityResolver.customDataFieldName = myApplicationPermissions
+     * <bean id="groupPermissionResolver" class="com.stormpath.spring.security.provider.GroupCustomDataPermissionResolver">
+     *      <property name="customDataFieldName" value="myApplicationPermissions" />
+     * </bean>
+     *
+     * <bean id="accountPermissionResolver" class="com.stormpath.spring.security.provider.AccountCustomDataPermissionResolver">
+     *      <property name="customDataFieldName" value="myApplicationPermissions" />
+     * </bean>
+     *
+     * <bean id="authenticationProvider" class="com.stormpath.spring.security.provider.StormpathAuthenticationProvider">
+     *      ...
+     *      <property name="groupPermissionResolver" ref="groupPermissionResolver" />
+     *      <property name="accountPermissionResolver" ref="accountPermissionResolver" />
+     * </bean>
      * </pre>
      *
      * @param fieldName the name of the {@link com.stormpath.sdk.directory.CustomData} field used to store the {@code Set&lt;String&gt;}
-     *                  of granted authorities.
+     *                  of permissions.
      * @return this object for method chaining.
      */
-    public CustomDataGrantedAuthoritiesEditor setFieldName(String fieldName) {
+    public CustomDataPermissionsEditor setFieldName(String fieldName) {
         this.fieldName = fieldName;
         return this;
     }
 
     @Override
-    public GrantedAuthoritiesEditor append(String grantedAuthority) {
-        Assert.hasText(grantedAuthority, "Granted authority string argument cannot be null or empty.");
+    public PermissionsEditor append(String permission) {
+        Assert.hasText(permission, "permission string argument cannot be null or empty.");
 
-        Collection<String> grantedAuthorities = lookupGrantedAuthorityStrings();
+        Collection<String> permissions = lookupPermissionStrings();
 
         String fieldName = getFieldName();
 
-        if (grantedAuthorities == null) {
-            grantedAuthorities = new LinkedHashSet<String>();
-            CUSTOM_DATA.put(fieldName, grantedAuthorities);
-        } else if (grantedAuthorities instanceof List) {
+        if (permissions == null) {
+            permissions = new LinkedHashSet<String>();
+            CUSTOM_DATA.put(fieldName, permissions);
+        } else if (permissions instanceof List) {
             //hasn't yet been converted to a set that we maintain:
-            grantedAuthorities = asSet(fieldName, (List) grantedAuthorities);
-            CUSTOM_DATA.put(fieldName, grantedAuthorities);
+            permissions = asSet(fieldName, (List) permissions);
+            CUSTOM_DATA.put(fieldName, permissions);
         }
         //else the Collection should be a Set
-
-        grantedAuthorities.add(grantedAuthority);
+        permissions.add(permission);
 
         return this;
     }
 
     @Override
-    public GrantedAuthoritiesEditor remove(String perm) {
+    public PermissionsEditor remove(String perm) {
         if (org.springframework.util.StringUtils.hasText(perm)) {
-            Collection<String> perms = lookupGrantedAuthorityStrings();
+            Collection<String> perms = lookupPermissionStrings();
             if (!CollectionUtils.isEmpty(perms)) {
                 if (perms instanceof List) {
                     //hasn't yet been converted to a set that we maintain:
@@ -214,9 +226,9 @@ public class CustomDataGrantedAuthoritiesEditor implements GrantedAuthoritiesEdi
     }
 
     @Override
-    public Set<String> getGrantedAuthorityStrings() {
+    public Set<String> getPermissionStrings() {
 
-        Collection<String> perms = lookupGrantedAuthorityStrings();
+        Collection<String> perms = lookupPermissionStrings();
 
         if (CollectionUtils.isEmpty(perms)) {
             return Collections.emptySet();
@@ -252,7 +264,7 @@ public class CustomDataGrantedAuthoritiesEditor implements GrantedAuthoritiesEdi
     }
 
     @SuppressWarnings("unchecked")
-    private Collection<String> lookupGrantedAuthorityStrings() {
+    private Collection<String> lookupPermissionStrings() {
 
         final String fieldName = getFieldName();
 

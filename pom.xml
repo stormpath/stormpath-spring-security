@@ -28,7 +28,7 @@
 
     <groupId>com.stormpath.spring.security</groupId>
     <artifactId>stormpath-spring-security-root</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Stormpath Spring Security</name>
@@ -82,15 +82,18 @@
     <properties>
 
         <!-- Standard Dependencies: -->
-        <spring.security.version>3.1.4.RELEASE</spring.security.version>
+        <spring.security.version>3.2.0.RELEASE</spring.security.version>
         <slf4j.version>1.6.6</slf4j.version>
         <stormpath.sdk.version>0.9.2</stormpath.sdk.version>
+        <commons-logging.version>1.1.3</commons-logging.version>
 
         <!-- Test Dependencies: -->
         <easymock.version>3.1</easymock.version>
         <groovy.version>2.1.6</groovy.version>
+        <jackson.version>1.9.13</jackson.version>
         <junit.version>4.10</junit.version>
         <logback.version>1.0.7</logback.version>
+
 
     </properties>
 
@@ -121,6 +124,12 @@
             <version>${logback.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>${commons-logging.version}</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
@@ -132,12 +141,6 @@
                 <groupId>com.stormpath.sdk</groupId>
                 <artifactId>stormpath-sdk-api</artifactId>
                 <version>${stormpath.sdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.stormpath.sdk</groupId>
-                <artifactId>stormpath-sdk-httpclient</artifactId>
-                <version>${stormpath.sdk.version}</version>
-                <scope>runtime</scope>
             </dependency>
 
             <!-- Spring Security Dependencies -->
@@ -154,7 +157,20 @@
                 <version>${slf4j.version}</version>
             </dependency>
 
+
             <!-- Test Libraries -->
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-mapper-asl</artifactId>
+                <version>${jackson.version}</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <!-- Required for any libraries that expect to call the commons logging APIs -->
                 <groupId>org.slf4j</groupId>
@@ -163,9 +179,9 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>ch.qos.logback</groupId>
-                <artifactId>logback-classic</artifactId>
-                <version>${logback.version}</version>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${commons-logging.version}</version>
                 <scope>test</scope>
             </dependency>
 
