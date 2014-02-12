@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.stormpath.spring.security.authz.permission;
+package com.stormpath.spring.security.authz.permission
 
-import org.junit.Test;
+import org.junit.Test
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.*
 
 /**
  * @since 0.2.0

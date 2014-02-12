@@ -20,6 +20,7 @@ import com.stormpath.sdk.account.Account;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
@@ -34,7 +35,7 @@ public class UsernamePasswordAuthenticationTokenFactory implements Authenticatio
 
     @Override
     public Authentication createAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities, Account account) {
-        StormpathUserDetails userDetails = new StormpathUserDetails(principal.toString(), credentials.toString(), authorities, account);
+        UserDetails userDetails = new StormpathUserDetails(principal.toString(), credentials.toString(), authorities, account);
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, credentials, userDetails.getAuthorities());
         return authToken;
     }

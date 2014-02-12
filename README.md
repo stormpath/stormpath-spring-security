@@ -76,13 +76,49 @@ But you'll also need to update your `AuthenticationProvider`'s configuration to 
 	<property name="customDataFieldName" value="myApplicationPermissions" />
 </bean>
 <bean id="authenticationProvider" class="com.stormpath.spring.security.provider.StormpathAuthenticationProvider">
-    ...
+    <!-- etc... -->
 	<property name="groupPermissionResolver" ref="groupPermissionResolver" />
     <property name="accountPermissionResolver" ref="accountPermissionResolver" />
 </bean>
 ```
 
 - The `AuthenticationProvider` implementation now has a default `groupPermissionResolver` and `accountPermissionResolver` properties that leverage respective group or account `CustomData` to support permissions as described above.  Prior to this 0.5.0 release, there were no default implementations of these properties - you had to implement the interfaces yourself to support permissions.  Now Permissions are built in by default (although you could still provide your own custom implementations if you have custom needs of course).
+- Added CacheManager/Cache bridging support.  This allows the Stormpath SDK to use the same caching mechanism that you're already using for Spring, simplifying cache configuration/setup.  For example:
+
+```xml
+<bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
+    <property name="caches">
+        <set>
+            <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="com.stormpath.sdk.application.Application" />
+            <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="com.stormpath.sdk.account.Account" />
+            <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="com.stormpath.sdk.group.Group" />
+            <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean" p:name="com.stormpath.sdk.directory.CustomData" />
+        </set>
+    </property>
+</bean>
+
+<!-- Stormpath integration -->
+<bean id="stormpathClient" class="com.stormpath.spring.security.client.ClientFactory" >
+    <!-- etc... -->
+    <property name="cacheManager" ref="cacheManager" />
+</bean>
+```
+
+If for some reason you *don't* want the Stormpath SDK to use Spring's caching mechanism, you can configure the `stormpathCacheManager` property (instead of the expected Spring-specific `cacheManager` property), which accepts a `com.stormpath.sdk.cache.CacheManager` instance instead:
+
+```xml
+<bean id="stormpathCacheManager" class="my.com.stormpath.sdk.cache.CacheManagerImplementation" />
+
+<!-- Stormpath integration -->
+<bean id="stormpathClient" class="com.stormpath.spring.security.client.ClientFactory" >
+    <!-- etc... -->
+    <property name="stormpathCacheManager" ref="stormpathCacheManager" />
+</bean>
+```
+
+But note that this approach requires you to set-up/configure two separate caching mechanisms.
+
+See ClientFactory `setCacheManager` and `setStormpathCacheManager` JavaDoc for more.
 
 ### 0.1.0
 

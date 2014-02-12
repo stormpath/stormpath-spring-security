@@ -22,8 +22,8 @@ import org.junit.Test
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 
-import static org.junit.Assert.*;
 import static org.easymock.EasyMock.*
+import static org.junit.Assert.assertEquals
 
 
 class WildcardPermissionEvaluatorTest {

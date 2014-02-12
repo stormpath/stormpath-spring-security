@@ -22,7 +22,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
 import static org.easymock.EasyMock.*
-import static org.junit.Assert.*
+import static org.junit.Assert.assertTrue
 
 class StormpathUserDetailsTest {
 

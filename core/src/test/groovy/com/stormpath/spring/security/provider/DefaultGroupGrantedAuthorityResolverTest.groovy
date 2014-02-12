@@ -23,8 +23,8 @@ import org.junit.Before
 import org.junit.Test
 import org.springframework.security.core.GrantedAuthority
 
-import static org.hamcrest.core.IsInstanceOf.instanceOf
 import static org.easymock.EasyMock.*
+import static org.hamcrest.core.IsInstanceOf.instanceOf
 import static org.junit.Assert.*
 
 class DefaultGroupGrantedAuthorityResolverTest {

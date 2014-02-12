@@ -19,6 +19,7 @@ package com.stormpath.spring.security.client;
 import com.stormpath.sdk.cache.CacheManager;
 import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.client.ClientBuilder;
+import com.stormpath.spring.security.cache.SpringCacheManager;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import java.io.InputStream;
@@ -136,15 +137,38 @@ public class ClientFactory extends AbstractFactoryBean<Client> {
     }
 
     /**
-     * Calls {@code clientBuilder.}{@link ClientBuilder#setCacheManager(com.stormpath.sdk.cache.CacheManager) setCacheManager}
-     * using the specified Stormpath {@link com.stormpath.sdk.cache.CacheManager CacheManager} instance, but <b>note:</b>
-     * <p/>
-     *
-     * @param cacheManager the Storpmath SDK-specific CacheManager to use for the Stormpath SDK Client's caching needs.
-     */
-    public void setCacheManager(CacheManager cacheManager) {
-        this.clientBuilder.setCacheManager(cacheManager);
+    * Uses the specified Spring {@link CacheManager} instance as the Stormpath SDK Client's CacheManager, allowing both
+    * Spring and Stormpath SDK to share the same cache mechanism.
+    * <p/>
+    * If for some reason you don't want to share the same cache mechanism, you can explicitly set a Stormpath SDK-only
+    * {@link com.stormpath.sdk.cache.CacheManager CacheManager} instance via the
+    * {@link #setStormpathCacheManager(com.stormpath.sdk.cache.CacheManager) setStormpathCacheManager} method.
+    *
+    * @param cacheManager the Spring CacheManager to use for the Stormpath SDK Client's caching needs.
+    * @since 0.2.0
+    * @see #setStormpathCacheManager(com.stormpath.sdk.cache.CacheManager)
+    */
+    public void setCacheManager(org.springframework.cache.CacheManager cacheManager) {
+        CacheManager stormpathCacheManager = new SpringCacheManager(cacheManager);
+        this.clientBuilder.setCacheManager(stormpathCacheManager);
     }
 
-
+    /**
+     * Calls {@code clientBuilder.}{@link ClientBuilder#setCacheManager(com.stormpath.sdk.cache.CacheManager) setCacheManager}
+     * using the specified Stormpath {@link com.stormpath.sdk.cache.CacheManager CacheManager} instance, but <b>note:</b>
+     * This method should only be used if the Stormpath SDK should use a <em>different</em> CacheManager than what
+     * Spring uses.
+     * <p/>
+     * If you prefer that Spring and the Stormpath SDK use the same cache mechanism to reduce complexity/configuration,
+     * configure your preferred Spring {@code cacheManager} first and then use that cacheManager by calling the
+     * {@link #setCacheManager(org.springframework.cache.CacheManager) setCacheManager(springCacheManager)} method
+     * instead of this one.
+     *
+     * @param cacheManager the Storpmath SDK-specific CacheManager to use for the Stormpath SDK Client's caching needs.
+     * @since 0.2.0
+     * @see #setCacheManager(org.springframework.cache.CacheManager)
+     */
+    public void setStormpathCacheManager(com.stormpath.sdk.cache.CacheManager cacheManager) {
+        this.clientBuilder.setCacheManager(cacheManager);
+    }
 }
