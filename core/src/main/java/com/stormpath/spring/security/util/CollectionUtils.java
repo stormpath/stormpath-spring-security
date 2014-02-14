@@ -35,28 +35,6 @@ public class CollectionUtils {
         return set;
     }
 
-    /**
-     * Returns the size of the specified collection or {@code 0} if the collection is {@code null}.
-     *
-     * @param c the collection to check
-     * @return the size of the specified collection or {@code 0} if the collection is {@code null}.
-     * @since 1.2
-     */
-    public static int size(Collection c) {
-        return c != null ? c.size() : 0;
-    }
-
-    /**
-     * Returns the size of the specified map or {@code 0} if the map is {@code null}.
-     *
-     * @param m the map to check
-     * @return the size of the specified map or {@code 0} if the map is {@code null}.
-     * @since 1.2
-     */
-    public static int size(Map m) {
-        return m != null ? m.size() : 0;
-    }
-
     public static <E> List<E> asList(E... elements) {
         if (elements == null || elements.length == 0) {
             return Collections.emptyList();

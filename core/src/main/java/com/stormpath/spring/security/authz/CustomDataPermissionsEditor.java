@@ -18,6 +18,7 @@ package com.stormpath.spring.security.authz;
 import com.stormpath.sdk.directory.CustomData;
 import com.stormpath.sdk.lang.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -210,7 +211,7 @@ public class CustomDataPermissionsEditor implements PermissionsEditor {
 
     @Override
     public PermissionsEditor remove(String perm) {
-        if (org.springframework.util.StringUtils.hasText(perm)) {
+        if (StringUtils.hasText(perm)) {
             Collection<String> perms = lookupPermissionStrings();
             if (!CollectionUtils.isEmpty(perms)) {
                 if (perms instanceof List) {

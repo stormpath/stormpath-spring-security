@@ -40,9 +40,6 @@ class DefaultGroupGrantedAuthorityResolverTest {
     void testDefaultInstance() {
         Assert.assertEquals 1, resolver.modes.size()
         Assert.assertSame DefaultGroupGrantedAuthorityResolver.Mode.HREF, resolver.modes.iterator().next()
-        def modeNames = resolver.modeNames
-        Assert.assertEquals 1, modeNames.size()
-        Assert.assertEquals DefaultGroupGrantedAuthorityResolver.Mode.HREF.name(), modeNames.iterator().next()
     }
 
     @Test
@@ -63,36 +60,7 @@ class DefaultGroupGrantedAuthorityResolverTest {
     }
 
     @Test
-    void testSetModeNames() {
-        resolver.setModeNames([DefaultGroupGrantedAuthorityResolver.Mode.ID.name()] as Set)
-        assertEquals 1, resolver.modes.size()
-        assertSame DefaultGroupGrantedAuthorityResolver.Mode.ID, resolver.modes.iterator().next()
-    }
-
-    @Test
-    void testSetModeNamesLowerCase() {
-        resolver.setModeNames([DefaultGroupGrantedAuthorityResolver.Mode.ID.name().toLowerCase()] as Set)
-        assertEquals 1, resolver.modes.size()
-        assertSame DefaultGroupGrantedAuthorityResolver.Mode.ID, resolver.modes.iterator().next()
-    }
-
-    @Test(expected=IllegalArgumentException)
-    void testSetNullModeNames() {
-        resolver.setModeNames(null)
-    }
-
-    @Test(expected=IllegalArgumentException)
-    void testSetEmptyModeNames() {
-        resolver.setModeNames(Collections.emptySet())
-    }
-
-    @Test(expected=IllegalArgumentException)
-    void testSetInvalidModeName() {
-        resolver.setModeNames(['foo'] as Set)
-    }
-
-    @Test
-    void testResolveRolesWithHref() {
+    void testResolveGrantedAuthorityWithHref() {
 
         def group = createStrictMock(Group)
 
@@ -113,7 +81,7 @@ class DefaultGroupGrantedAuthorityResolverTest {
     }
 
     @Test(expected=IllegalStateException)
-    void testResolveRolesWithMissingHref() {
+    void testResolveGrantedAuthorityWithMissingHref() {
 
         def group = createStrictMock(Group)
 
@@ -129,7 +97,7 @@ class DefaultGroupGrantedAuthorityResolverTest {
     }
 
     @Test
-    void testResolveRolesWithId() {
+    void testResolveGrantedAuthorityWithId() {
 
         def group = createStrictMock(Group)
 
@@ -151,7 +119,7 @@ class DefaultGroupGrantedAuthorityResolverTest {
     }
 
     @Test
-    void testResolveRolesWithIdAndInvalidHref() {
+    void testResolveGrantedAuthorityWithIdAndInvalidHref() {
 
         def group = createStrictMock(Group)
 
@@ -171,7 +139,7 @@ class DefaultGroupGrantedAuthorityResolverTest {
     }
 
     @Test
-    void testResolveRolesWithName() {
+    void testResolveGrantedAuthorityWithName() {
 
         def group = createStrictMock(Group)
 
@@ -192,5 +160,34 @@ class DefaultGroupGrantedAuthorityResolverTest {
 
         verify group
     }
+
+    @Test(expected = IllegalArgumentException)
+    void testResolveGrantedAuthorityFromEmptyString() {
+        DefaultGroupGrantedAuthorityResolver.Mode.fromString("")
+    }
+
+    @Test(expected = IllegalArgumentException)
+    void testResolveGrantedAuthorityFromNull() {
+        DefaultGroupGrantedAuthorityResolver.Mode.fromString(null)
+    }
+
+    @Test(expected = IllegalArgumentException)
+    void testResolveGrantedAuthorityFromUnknownName() {
+        DefaultGroupGrantedAuthorityResolver.Mode.fromString("foo")
+    }
+
+    @Test
+    void testResolveGrantedAuthorityFromString() {
+
+        def mode = DefaultGroupGrantedAuthorityResolver.Mode.fromString("href")
+        assertEquals(DefaultGroupGrantedAuthorityResolver.Mode.HREF, mode)
+
+        mode = DefaultGroupGrantedAuthorityResolver.Mode.fromString("HREF")
+        assertEquals(DefaultGroupGrantedAuthorityResolver.Mode.HREF, mode)
+
+        mode = DefaultGroupGrantedAuthorityResolver.Mode.fromString("Name")
+        assertEquals(DefaultGroupGrantedAuthorityResolver.Mode.NAME, mode)
+    }
+
 
 }

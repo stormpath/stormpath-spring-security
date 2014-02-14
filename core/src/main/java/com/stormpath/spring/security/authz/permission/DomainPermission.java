@@ -34,7 +34,9 @@
  */
 package com.stormpath.spring.security.authz.permission;
 
-import com.stormpath.spring.security.util.StringUtils;
+import com.stormpath.sdk.lang.Strings;
+import com.stormpath.spring.security.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.Set;
 
@@ -64,14 +66,14 @@ public class DomainPermission extends WildcardPermission {
 
     public DomainPermission(String actions) {
         domain = getDomain(getClass());
-        this.actions = StringUtils.splitToSet(actions, SUBPART_DIVIDER_TOKEN);
+        this.actions = CollectionUtils.asSet(StringUtils.tokenizeToStringArray(actions, SUBPART_DIVIDER_TOKEN));
         encodeParts(domain, actions, null);
     }
 
     public DomainPermission(String actions, String targets) {
         this.domain = getDomain(getClass());
-        this.actions = StringUtils.splitToSet(actions, SUBPART_DIVIDER_TOKEN);
-        this.targets = StringUtils.splitToSet(targets, SUBPART_DIVIDER_TOKEN);
+        this.actions = CollectionUtils.asSet(StringUtils.tokenizeToStringArray(actions, SUBPART_DIVIDER_TOKEN));
+        this.targets = CollectionUtils.asSet(StringUtils.tokenizeToStringArray(targets, SUBPART_DIVIDER_TOKEN));
         encodeParts(this.domain, actions, targets);
     }
 
@@ -81,27 +83,27 @@ public class DomainPermission extends WildcardPermission {
     }
 
     private void encodeParts(String domain, String actions, String targets) {
-        if (!StringUtils.hasText(domain)) {
+        if (!Strings.hasText(domain)) {
             throw new IllegalArgumentException("domain argument cannot be null or empty.");
         }
         StringBuilder sb = new StringBuilder(domain);
 
-        if (!StringUtils.hasText(actions)) {
-            if (StringUtils.hasText(targets)) {
+        if (!Strings.hasText(actions)) {
+            if (Strings.hasText(targets)) {
                 sb.append(PART_DIVIDER_TOKEN).append(WILDCARD_TOKEN);
             }
         } else {
             sb.append(PART_DIVIDER_TOKEN).append(actions);
         }
-        if (StringUtils.hasText(targets)) {
+        if (Strings.hasText(targets)) {
             sb.append(PART_DIVIDER_TOKEN).append(targets);
         }
         setParts(sb.toString());
     }
 
     protected void setParts(String domain, Set<String> actions, Set<String> targets) {
-        String actionsString = StringUtils.toDelimitedString(actions, SUBPART_DIVIDER_TOKEN);
-        String targetsString = StringUtils.toDelimitedString(targets, SUBPART_DIVIDER_TOKEN);
+        String actionsString = StringUtils.collectionToDelimitedString(actions, SUBPART_DIVIDER_TOKEN);
+        String targetsString = StringUtils.collectionToDelimitedString(targets, SUBPART_DIVIDER_TOKEN);
         encodeParts(domain, actionsString, targetsString);
         this.domain = domain;
         this.actions = actions;

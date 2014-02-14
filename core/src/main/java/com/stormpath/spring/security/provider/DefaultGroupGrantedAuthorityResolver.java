@@ -17,6 +17,7 @@
 package com.stormpath.spring.security.provider;
 
 import com.stormpath.sdk.group.Group;
+import com.stormpath.sdk.lang.Assert;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -110,25 +111,6 @@ public class DefaultGroupGrantedAuthorityResolver implements GroupGrantedAuthori
         this.modes = modes;
     }
 
-    public Set<String> getModeNames() {
-        Set<String> names = new HashSet<String>(modes.size());
-        for (Mode mode : modes) {
-            names.add(mode.name());
-        }
-        return names;
-    }
-
-    public void setModeNames(Set<String> modeNames) {
-        if (modeNames == null || modeNames.isEmpty()) {
-            throw new IllegalArgumentException("modeNames cannot be null or empty");
-        }
-        Set<Mode> modes = new HashSet<Mode>((modeNames != null) ? modeNames.size() : 0);
-        for (String name : modeNames) {
-            modes.add(Mode.fromString(name));
-        }
-        setModes(modes);
-    }
-
     @Override
     public Set<GrantedAuthority> resolveGrantedAuthorities(Group group) {
 
@@ -177,6 +159,8 @@ public class DefaultGroupGrantedAuthorityResolver implements GroupGrantedAuthori
         NAME;
 
         public static Mode fromString(final String name) {
+            Assert.notNull(name);
+
             String upper = name.toUpperCase();
             for (Mode mode : values()) {
                 if (mode.name().equals(upper)) {

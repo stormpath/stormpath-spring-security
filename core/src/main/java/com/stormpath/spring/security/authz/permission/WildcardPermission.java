@@ -15,8 +15,8 @@
  */
 package com.stormpath.spring.security.authz.permission;
 
+import com.stormpath.sdk.lang.Strings;
 import com.stormpath.spring.security.util.CollectionUtils;
-import com.stormpath.spring.security.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -239,7 +239,7 @@ public class WildcardPermission implements Permission, Serializable {
             if (buffer.length() > 0) {
                 buffer.append(PART_DIVIDER_TOKEN);
             }
-            buffer.append(StringUtils.join(part.iterator(), SUBPART_DIVIDER_TOKEN));
+            buffer.append(Strings.collectionToDelimitedString(part, SUBPART_DIVIDER_TOKEN));
         }
         return buffer.toString();
     }
