@@ -18,13 +18,14 @@
 package com.stormpath.spring.security.provider
 
 import com.stormpath.sdk.group.Group
-import org.easymock.EasyMock
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.springframework.security.core.GrantedAuthority
 
+import static org.easymock.EasyMock.*
 import static org.hamcrest.core.IsInstanceOf.instanceOf
+import static org.junit.Assert.*
 
 class DefaultGroupGrantedAuthorityResolverTest {
 
@@ -39,9 +40,6 @@ class DefaultGroupGrantedAuthorityResolverTest {
     void testDefaultInstance() {
         Assert.assertEquals 1, resolver.modes.size()
         Assert.assertSame DefaultGroupGrantedAuthorityResolver.Mode.HREF, resolver.modes.iterator().next()
-        def modeNames = resolver.modeNames
-        Assert.assertEquals 1, modeNames.size()
-        Assert.assertEquals DefaultGroupGrantedAuthorityResolver.Mode.HREF.name(), modeNames.iterator().next()
     }
 
     @Test
@@ -62,134 +60,134 @@ class DefaultGroupGrantedAuthorityResolverTest {
     }
 
     @Test
-    void testSetModeNames() {
-        resolver.setModeNames([DefaultGroupGrantedAuthorityResolver.Mode.ID.name()] as Set)
-        Assert.assertEquals 1, resolver.modes.size()
-        Assert.assertSame DefaultGroupGrantedAuthorityResolver.Mode.ID, resolver.modes.iterator().next()
-    }
+    void testResolveGrantedAuthorityWithHref() {
 
-    @Test
-    void testSetModeNamesLowerCase() {
-        resolver.setModeNames([DefaultGroupGrantedAuthorityResolver.Mode.ID.name().toLowerCase()] as Set)
-        Assert.assertEquals 1, resolver.modes.size()
-        Assert.assertSame DefaultGroupGrantedAuthorityResolver.Mode.ID, resolver.modes.iterator().next()
-    }
-
-    @Test(expected=IllegalArgumentException)
-    void testSetNullModeNames() {
-        resolver.setModeNames(null)
-    }
-
-    @Test(expected=IllegalArgumentException)
-    void testSetEmptyModeNames() {
-        resolver.setModeNames(Collections.emptySet())
-    }
-
-    @Test(expected=IllegalArgumentException)
-    void testSetInvalidModeName() {
-        resolver.setModeNames(['foo'] as Set)
-    }
-
-    @Test
-    void testResolveRolesWithHref() {
-
-        def group = EasyMock.createStrictMock(Group)
+        def group = createStrictMock(Group)
 
         def href = 'https://api.stormpath.com/groups/foo'
 
-        EasyMock.expect(group.href).andReturn(href)
+        expect(group.href).andReturn(href)
 
-        EasyMock.replay group
+        replay group
 
         def roleNames = resolver.resolveGrantedAuthorities(group)
 
         Assert.assertEquals 1, roleNames.size()
         def retrievedRole = roleNames.iterator().next()
-        Assert.assertThat retrievedRole, instanceOf(GrantedAuthority.class)
-        Assert.assertEquals href, retrievedRole.toString()
+        assertThat retrievedRole, instanceOf(GrantedAuthority.class)
+        assertEquals href, retrievedRole.toString()
 
-        EasyMock.verify group
+        verify group
     }
 
     @Test(expected=IllegalStateException)
-    void testResolveRolesWithMissingHref() {
+    void testResolveGrantedAuthorityWithMissingHref() {
 
-        def group = EasyMock.createStrictMock(Group)
+        def group = createStrictMock(Group)
 
-        EasyMock.expect(group.href).andReturn null
+        expect(group.href).andReturn null
 
-        EasyMock.replay group
+        replay group
 
         try {
             resolver.resolveGrantedAuthorities(group)
         } finally {
-            EasyMock.verify group
+            verify group
         }
     }
 
     @Test
-    void testResolveRolesWithId() {
+    void testResolveGrantedAuthorityWithId() {
 
-        def group = EasyMock.createStrictMock(Group)
+        def group = createStrictMock(Group)
 
         def href = 'https://api.stormpath.com/groups/foo'
 
-        EasyMock.expect(group.href).andReturn(href)
+        expect(group.href).andReturn(href)
 
-        EasyMock.replay group
+        replay group
 
         resolver.modes = [DefaultGroupGrantedAuthorityResolver.Mode.ID] as Set
         def roleNames = resolver.resolveGrantedAuthorities(group)
 
         Assert.assertEquals 1, roleNames.size()
         def retrievedRole = roleNames.iterator().next()
-        Assert.assertThat retrievedRole, instanceOf(GrantedAuthority.class)
-        Assert.assertEquals 'foo', retrievedRole.toString()
+        assertThat retrievedRole, instanceOf(GrantedAuthority.class)
+        assertEquals 'foo', retrievedRole.toString()
 
-        EasyMock.verify group
+        verify group
     }
 
     @Test
-    void testResolveRolesWithIdAndInvalidHref() {
+    void testResolveGrantedAuthorityWithIdAndInvalidHref() {
 
-        def group = EasyMock.createStrictMock(Group)
+        def group = createStrictMock(Group)
 
         def href = 'whatever'
 
-        EasyMock.expect(group.href).andReturn(href)
+        expect(group.href).andReturn(href)
 
-        EasyMock.replay group
+        replay group
 
         resolver.modes = [DefaultGroupGrantedAuthorityResolver.Mode.ID] as Set
         def roleNames = resolver.resolveGrantedAuthorities(group)
 
-        Assert.assertNotNull roleNames
-        Assert.assertTrue roleNames.isEmpty()
+        assertNotNull roleNames
+        assertTrue roleNames.isEmpty()
 
-        EasyMock.verify group
+        verify group
     }
 
     @Test
-    void testResolveRolesWithName() {
+    void testResolveGrantedAuthorityWithName() {
 
-        def group = EasyMock.createStrictMock(Group)
+        def group = createStrictMock(Group)
 
         def href = 'https://api.stormpath.com/groups/foo'
 
-        EasyMock.expect(group.href).andReturn(href)
-        EasyMock.expect(group.name).andReturn('bar')
+        expect(group.href).andReturn(href)
+        expect(group.name).andReturn('bar')
 
-        EasyMock.replay group
+        replay group
 
         resolver.modes = [DefaultGroupGrantedAuthorityResolver.Mode.NAME] as Set
         def roleNames = resolver.resolveGrantedAuthorities(group)
 
         Assert.assertEquals 1, roleNames.size()
         def retrievedRole = roleNames.iterator().next()
-        Assert.assertThat retrievedRole, instanceOf(GrantedAuthority.class)
-        Assert.assertEquals 'bar', retrievedRole.toString()
+        assertThat retrievedRole, instanceOf(GrantedAuthority.class)
+        assertEquals 'bar', retrievedRole.toString()
 
-        EasyMock.verify group
+        verify group
     }
+
+    @Test(expected = IllegalArgumentException)
+    void testResolveGrantedAuthorityFromEmptyString() {
+        DefaultGroupGrantedAuthorityResolver.Mode.fromString("")
+    }
+
+    @Test(expected = IllegalArgumentException)
+    void testResolveGrantedAuthorityFromNull() {
+        DefaultGroupGrantedAuthorityResolver.Mode.fromString(null)
+    }
+
+    @Test(expected = IllegalArgumentException)
+    void testResolveGrantedAuthorityFromUnknownName() {
+        DefaultGroupGrantedAuthorityResolver.Mode.fromString("foo")
+    }
+
+    @Test
+    void testResolveGrantedAuthorityFromString() {
+
+        def mode = DefaultGroupGrantedAuthorityResolver.Mode.fromString("href")
+        assertEquals(DefaultGroupGrantedAuthorityResolver.Mode.HREF, mode)
+
+        mode = DefaultGroupGrantedAuthorityResolver.Mode.fromString("HREF")
+        assertEquals(DefaultGroupGrantedAuthorityResolver.Mode.HREF, mode)
+
+        mode = DefaultGroupGrantedAuthorityResolver.Mode.fromString("Name")
+        assertEquals(DefaultGroupGrantedAuthorityResolver.Mode.NAME, mode)
+    }
+
 
 }
