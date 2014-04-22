@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.stormpath.spring.security.client;
 
 import com.stormpath.sdk.cache.CacheManager;
+import com.stormpath.sdk.client.ApiKey;
 import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.client.ClientBuilder;
+import com.stormpath.sdk.client.Clients;
 import com.stormpath.spring.security.cache.SpringCacheManager;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
@@ -50,10 +51,11 @@ import java.util.Properties;
 public class ClientFactory extends AbstractFactoryBean<Client> {
 
     private ClientBuilder clientBuilder;
+    private ApiKey apiKey;
 
     public ClientFactory() {
         super();
-        this.clientBuilder = new ClientBuilder();
+        this.clientBuilder = Clients.builder();
     }
 
     @Override
