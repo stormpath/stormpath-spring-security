@@ -44,7 +44,12 @@ package com.stormpath.spring.security.provider;
 public class InvalidPermissionStringException extends RuntimeException
 {
 
-    private String permissionString;
+    /**
+	 * Generated version. 
+	 */
+	private static final long serialVersionUID = -3613034325915440812L;
+	
+	private String permissionString;
 
     /**
      * Constructs a new exception with the given message and permission string.

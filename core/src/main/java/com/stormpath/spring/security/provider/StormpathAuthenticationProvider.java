@@ -346,7 +346,7 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
         assertState();
-        AuthenticationRequest request = createAuthenticationRequest(authentication);
+        AuthenticationRequest<String, char[]> request = createAuthenticationRequest(authentication);
         Application application = ensureApplicationReference();
 
         Account account;
@@ -396,7 +396,7 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
         return this.application;
     }
 
-    protected AuthenticationRequest createAuthenticationRequest(Authentication authentication) {
+    protected AuthenticationRequest<String, char[]> createAuthenticationRequest(Authentication authentication) {
         String username = (String) authentication.getPrincipal();
         String password = (String) authentication.getCredentials();
         return new UsernamePasswordRequest(username, password);
