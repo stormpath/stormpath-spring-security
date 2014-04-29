@@ -57,6 +57,6 @@ public class SpringCacheManager implements CacheManager {
     @Override
     public <K, V> Cache<K, V> getCache(String name) {
         final org.springframework.cache.Cache springCache = SPRING_CACHE_MANAGER.getCache(name);
-        return new SpringCache(springCache);
+        return new SpringCache<K,V>(springCache);
     }
 }

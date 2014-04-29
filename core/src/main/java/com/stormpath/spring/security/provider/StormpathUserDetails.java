@@ -36,6 +36,11 @@ import java.util.Map;
  */
 public class StormpathUserDetails implements UserDetails {
 
+    /**
+     * Generated version.
+     */
+    private static final long serialVersionUID = 3122034112433939798L;
+
     private final String username;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;

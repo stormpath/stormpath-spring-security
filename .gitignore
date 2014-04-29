@@ -12,3 +12,6 @@ target
 *.ear
 
 
+.project
+.settings
+.classpath

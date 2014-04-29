@@ -42,6 +42,8 @@ public class SpringCache<K, V> implements Cache<K, V> {
         this.SPRING_CACHE = springCache;
     }
 
+    @SuppressWarnings("unchecked")
+    // We only ever put objects of type V into the cache.
     @Override
     public V get(K key) {
         org.springframework.cache.Cache.ValueWrapper valueWrapper = SPRING_CACHE.get(key);
