@@ -22,7 +22,9 @@ import com.stormpath.sdk.authc.UsernamePasswordRequest;
 import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.group.Group;
 import com.stormpath.sdk.group.GroupList;
+import com.stormpath.sdk.provider.ProviderAccountRequest;
 import com.stormpath.sdk.resource.ResourceException;
+import com.stormpath.spring.security.authc.OauthAuthenticationToken;
 import com.stormpath.spring.security.authz.permission.Permission;
 import com.stormpath.spring.security.util.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -345,13 +347,19 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
         assertState();
-        AuthenticationRequest request = createAuthenticationRequest(authentication);
         Application application = ensureApplicationReference();
 
         Account account;
+        AuthenticationRequest request = null;
 
         try {
-            account = application.authenticateAccount(request).getAccount();
+            if(authentication instanceof OauthAuthenticationToken) {
+                account = application.getAccount((ProviderAccountRequest)authentication.getCredentials()).getAccount();
+            } else {
+                //Must be a UsernamePasswordAuthenticationToken
+                request = createAuthenticationRequest(authentication);
+                account = application.authenticateAccount(request).getAccount();
+            }
         } catch (ResourceException e) {
             String msg = StringUtils.clean(e.getMessage());
             if (msg == null) {
@@ -363,7 +371,9 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
             throw new AuthenticationServiceException(msg, e);
         } finally {
             //Clear the request data to prevent later memory access
-            request.clear();
+            if(request != null) {
+                request.clear();
+            }
         }
 
         Authentication authToken = this.authenticationTokenFactory.createAuthenticationToken(

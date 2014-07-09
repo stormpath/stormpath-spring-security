@@ -27,13 +27,6 @@ import static org.junit.Assert.assertTrue
 class StormpathUserDetailsTest {
 
     @Test(expected = IllegalArgumentException.class)
-    public void testUserNotNull(){
-        def account = createMock(Account)
-        Collection<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>();
-        new StormpathUserDetails(null, "psswd", grantedAuthorities, account);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
     public void testGrantedAuthoritiesNotNull(){
         def account = createMock(Account)
         new StormpathUserDetails("username", "psswd", null, account);
@@ -69,6 +62,37 @@ class StormpathUserDetailsTest {
 
         Collection<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>();
         UserDetails userDetails = new StormpathUserDetails("username", "psswd", grantedAuthorities, account);
+        assertTrue(userDetails.accountNonExpired)
+        assertTrue(userDetails.accountNonLocked)
+        assertTrue(userDetails.credentialsNonExpired)
+
+        verify account
+    }
+
+    @Test
+    public void testUsernameAndPasswordNull(){
+        def account = createMock(Account)
+
+        def acctUsername = 'jsmith'
+        def acctHref = 'https://api.stormpath.com/v1/accounts/123'
+        def acctEmail = 'jsmith@foo.com'
+        def acctGivenName = 'John'
+        def acctMiddleName = 'A'
+        def acctSurname = 'Smith'
+        def acctStatus = AccountStatus.ENABLED
+
+        expect(account.href).andReturn acctHref
+        expect(account.username).andReturn acctUsername times 2
+        expect(account.email).andReturn acctEmail
+        expect(account.givenName).andReturn acctGivenName
+        expect(account.middleName).andReturn acctMiddleName
+        expect(account.surname).andReturn acctSurname
+        expect(account.getStatus()).andReturn acctStatus times 2
+
+        replay account
+
+        Collection<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>();
+        UserDetails userDetails = new StormpathUserDetails(null, null, grantedAuthorities, account);
         assertTrue(userDetails.accountNonExpired)
         assertTrue(userDetails.accountNonLocked)
         assertTrue(userDetails.credentialsNonExpired)

@@ -34,7 +34,7 @@ public class UsernamePasswordAuthenticationTokenFactory implements Authenticatio
 
     @Override
     public Authentication createAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities, Account account) {
-        UserDetails userDetails = new StormpathUserDetails(principal.toString(), (String) credentials, authorities, account);
+        UserDetails userDetails = new StormpathUserDetails((String) principal, (String) credentials, authorities, account);
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, credentials, userDetails.getAuthorities());
         return authToken;
     }

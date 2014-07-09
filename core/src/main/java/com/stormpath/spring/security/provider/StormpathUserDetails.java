@@ -42,9 +42,6 @@ public class StormpathUserDetails implements UserDetails {
     private Map<String, String> stormpathUserDetails = null;
 
     public StormpathUserDetails(String username, String password, Collection<? extends GrantedAuthority> grantedAuthorities, Account account) {
-        if (username == null) {
-            throw new IllegalArgumentException("Username cannot be null.");
-        }
         if (grantedAuthorities == null) {
             throw new IllegalArgumentException("Granted authorities cannot be null.");
         }
