@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.stormpath.spring.security.provider;
 
 import com.stormpath.sdk.account.Account;
@@ -368,7 +367,7 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
         }
 
         Authentication authToken = this.authenticationTokenFactory.createAuthenticationToken(
-                authentication.getPrincipal(), authentication.getCredentials(), getGrantedAuthorities(account), account);
+                authentication.getPrincipal(), null, getGrantedAuthorities(account), account);
 
         return authToken;
     }

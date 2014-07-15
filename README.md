@@ -19,6 +19,13 @@ This project requires Maven 3 to build.  Run the following from a command prompt
 
 ## Change Log
 
+### 0.3.0
+
+- Upgraded Stormpath SDK dependency to latest release of 1.0.beta
+- [Issue 5](https://github.com/stormpath/stormpath-spring-security/issues/5): Removed credentials from authentication token
+- Upgraded Spring to version 4.0.4.RELEASE
+- Upgraded Spring Security to version 3.2.3.RELEASE
+
 ### 0.2.0
 
 - Upgraded Stormpath SDK dependency to latest stable release of 0.9.2
