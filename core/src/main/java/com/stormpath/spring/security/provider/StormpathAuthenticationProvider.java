@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Stormpath, Inc.
+ * Copyright 2014 Stormpath, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -367,10 +367,14 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
             request.clear();
         }
 
-        Authentication authToken = this.authenticationTokenFactory.createAuthenticationToken(
-                authentication.getPrincipal(), authentication.getCredentials(), getGrantedAuthorities(account), account);
+        Authentication authToken = createAuthenticationToken(authentication.getPrincipal(), authentication.getCredentials(), account);
 
         return authToken;
+    }
+
+    public Authentication createAuthenticationToken(Object principal, Object credentials, Account account) throws AuthenticationException {
+        return this.authenticationTokenFactory.createAuthenticationToken(
+                principal, credentials, getGrantedAuthorities(account), account);
     }
 
     /**
