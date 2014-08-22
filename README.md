@@ -19,6 +19,10 @@ This project requires Maven 3 to build.  Run the following from a command prompt
 
 ## Change Log
 
+### 0.3.0
+
+- Upgraded Stormpath SDK dependency to latest release of 1.0.RC2
+
 ### 0.2.0
 
 - Upgraded Stormpath SDK dependency to latest stable release of 0.9.2
