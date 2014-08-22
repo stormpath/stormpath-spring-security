@@ -98,14 +98,6 @@
 
     <dependencies>
 
-        <!-- Stormpath Dependencies -->
-        <dependency>
-            <groupId>com.stormpath.sdk</groupId>
-            <artifactId>stormpath-sdk-impl</artifactId>
-            <version>${stormpath.sdk.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- Test Dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -144,10 +136,18 @@
 
         <dependencies>
 
+            <!-- Stormpath SDK -->
             <dependency>
                 <groupId>com.stormpath.sdk</groupId>
                 <artifactId>stormpath-sdk-api</artifactId>
                 <version>${stormpath.sdk.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.stormpath.sdk</groupId>
+                <artifactId>stormpath-sdk-httpclient</artifactId>
+                <version>${stormpath.sdk.version}</version>
+                <scope>runtime</scope>
             </dependency>
 
             <!-- Caching Dependencies-->
