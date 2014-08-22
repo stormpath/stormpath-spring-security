@@ -26,7 +26,7 @@
 
     <groupId>com.stormpath.spring.security</groupId>
     <artifactId>stormpath-spring-security-root</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Stormpath Spring Security</name>
@@ -54,7 +54,7 @@
         <connection>scm:git:git@github.com:stormpath/stormpath-spring-security.git</connection>
         <developerConnection>scm:git:git@github.com:stormpath/stormpath-spring-security.git</developerConnection>
         <url>http://github.com/stormpath/stormpath-spring-security</url>
-        <tag>stormpath-spring-security-root-0.3.0</tag>
+        <tag>HEAD</tag>
     </scm>
     <issueManagement>
         <system>GitHub</system>
