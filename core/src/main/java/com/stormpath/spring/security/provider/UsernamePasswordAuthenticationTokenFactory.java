@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.stormpath.spring.security.provider;
 
 import com.stormpath.sdk.account.Account;
@@ -35,7 +34,7 @@ public class UsernamePasswordAuthenticationTokenFactory implements Authenticatio
 
     @Override
     public Authentication createAuthenticationToken(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities, Account account) {
-        UserDetails userDetails = new StormpathUserDetails(principal.toString(), credentials.toString(), authorities, account);
+        UserDetails userDetails = new StormpathUserDetails(principal.toString(), (String) credentials, authorities, account);
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, credentials, userDetails.getAuthorities());
         return authToken;
     }

@@ -26,7 +26,7 @@
 
     <groupId>com.stormpath.spring.security</groupId>
     <artifactId>stormpath-spring-security-root</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Stormpath Spring Security</name>
@@ -100,14 +100,6 @@
 
     <dependencies>
 
-        <!-- Stormpath Dependencies -->
-        <dependency>
-            <groupId>com.stormpath.sdk</groupId>
-            <artifactId>stormpath-sdk-impl</artifactId>
-            <version>${stormpath.sdk.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- Test Dependencies -->
         <dependency>
             <groupId>junit</groupId>
@@ -175,11 +167,18 @@
 
         <dependencies>
 
-            <!-- Intraproject libs -->
+            <!-- Stormpath SDK -->
             <dependency>
                 <groupId>com.stormpath.sdk</groupId>
                 <artifactId>stormpath-sdk-api</artifactId>
                 <version>${stormpath.sdk.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.stormpath.sdk</groupId>
+                <artifactId>stormpath-sdk-httpclient</artifactId>
+                <version>${stormpath.sdk.version}</version>
+                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>com.stormpath.spring.security</groupId>

@@ -153,7 +153,6 @@ class StormpathAuthenticationProviderTest {
         expect(account.getStatus()).andReturn acctStatus times 2
         expect(account.username).andReturn acctUsername
         expect(authentication.principal).andReturn username
-        expect(authentication.credentials).andReturn password
         expect(groupList.iterator()).andReturn iterator
         expect(iterator.hasNext()).andReturn true
         expect(iterator.next()).andReturn group
@@ -175,7 +174,7 @@ class StormpathAuthenticationProviderTest {
         assertTrue info.authenticated
 
         assertEquals acctUsername, ((UserDetails)info.principal).username
-        assertEquals password, ((UserDetails)info.principal).password
+        assertEquals null, ((UserDetails)info.principal).password
         assertEquals 4, info.authorities.size()
         assertTrue info.authorities.contains(groupGrantedAuthority)
         assertTrue info.authorities.contains(accountGrantedAuthority)
