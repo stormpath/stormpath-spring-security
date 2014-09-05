@@ -58,7 +58,7 @@ class StormpathUserDetailsTest {
         def acctStatus = AccountStatus.ENABLED
 
         expect(account.href).andReturn acctHref
-        expect(account.username).andReturn acctUsername times 2
+        expect(account.username).andReturn acctUsername times 1
         expect(account.email).andReturn acctEmail
         expect(account.givenName).andReturn acctGivenName
         expect(account.middleName).andReturn acctMiddleName

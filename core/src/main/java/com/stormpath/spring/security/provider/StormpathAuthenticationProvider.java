@@ -22,7 +22,12 @@ import com.stormpath.sdk.authc.UsernamePasswordRequest;
 import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.group.Group;
 import com.stormpath.sdk.group.GroupList;
+import com.stormpath.sdk.idsite.IdSiteCallbackHandler;
+import com.stormpath.sdk.idsite.IdSiteResultListener;
+import com.stormpath.sdk.lang.Assert;
 import com.stormpath.sdk.resource.ResourceException;
+import com.stormpath.spring.security.authc.IdSiteAccountIDField;
+import com.stormpath.spring.security.authc.IdSiteAuthenticationToken;
 import com.stormpath.spring.security.authz.permission.Permission;
 import com.stormpath.spring.security.util.StringUtils;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -145,6 +150,7 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
     private AccountGrantedAuthorityResolver accountGrantedAuthorityResolver;
     private AccountPermissionResolver accountPermissionResolver;
     private AuthenticationTokenFactory authenticationTokenFactory;
+    private IdSiteAccountIDField idSitePrincipalAccountIdField = IdSiteAccountIDField.EMAIL;
 
     private Application application; //acquired via the client at runtime, not configurable by the StormpathAuthenticationProvider user
 
@@ -304,6 +310,15 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
         return authenticationTokenFactory;
     }
 
+    public void setIdSitePrincipalAccountIdField(String idField) {
+        Assert.notNull(idField);
+        this.idSitePrincipalAccountIdField = IdSiteAccountIDField.fromName(idField);
+    }
+
+    public String getIdSitePrincipalAccountIdField(String idField) {
+        return this.idSitePrincipalAccountIdField.toString();
+    }
+
     /**
      * Sets the {@link AuthenticationTokenFactory} used to create authenticated tokens. Unless overridden via
      * {@link #setAuthenticationTokenFactory(AuthenticationTokenFactory)} setAuthenticationTokenFactory},
@@ -342,16 +357,26 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
      * @throws AuthenticationException if authentication fails.
      */
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public Authentication authenticate(final Authentication authentication) throws AuthenticationException {
 
         assertState();
-        AuthenticationRequest request = createAuthenticationRequest(authentication);
         Application application = ensureApplicationReference();
 
         Account account;
+        AuthenticationRequest request = null;
 
         try {
-            account = application.authenticateAccount(request).getAccount();
+
+            if(authentication instanceof IdSiteAuthenticationToken) {
+                IdSiteCallbackHandler callbackHandler = application.newIdSiteCallbackHandler(authentication.getCredentials());
+                callbackHandler.setResultListener((IdSiteResultListener) authentication.getPrincipal());
+                account = callbackHandler.getAccountResult().getAccount();
+            } else {
+                //Must be a UsernamePasswordAuthenticationToken
+                request = createAuthenticationRequest(authentication);
+                account = application.authenticateAccount(request).getAccount();
+            }
+
         } catch (ResourceException e) {
             String msg = StringUtils.clean(e.getMessage());
             if (msg == null) {
@@ -363,18 +388,60 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
             throw new AuthenticationServiceException(msg, e);
         } finally {
             //Clear the request data to prevent later memory access
-            request.clear();
+            if(request != null) {
+                request.clear();
+            }
         }
 
-        Authentication authToken = createAuthenticationToken(authentication.getPrincipal(), null, account);
+        Authentication authToken;
+        if(authentication instanceof IdSiteAuthenticationToken) {
+            authToken = createAuthenticationToken(getIdSitePrincipalValue(account), null, account);
+        } else {
+            authToken = createAuthenticationToken(authentication.getPrincipal(), null, account);
+        }
 
         return authToken;
     }
 
-    public Authentication createAuthenticationToken(Object principal, Object credentials, Account account) throws AuthenticationException {
+    protected Authentication createAuthenticationToken(Object principal, Object credentials, Account account) throws AuthenticationException {
         return this.authenticationTokenFactory.createAuthenticationToken(
                 principal, credentials, getGrantedAuthorities(account), account);
     }
+
+//    @Override
+//    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+//
+//        assertState();
+//        AuthenticationRequest request = createAuthenticationRequest(authentication);
+//        Application application = ensureApplicationReference();
+//
+//        Account account;
+//
+//        try {
+//            account = application.authenticateAccount(request).getAccount();
+//        } catch (ResourceException e) {
+//            String msg = StringUtils.clean(e.getMessage());
+//            if (msg == null) {
+//                msg = StringUtils.clean(e.getDeveloperMessage());
+//            }
+//            if (msg == null) {
+//                msg = "Invalid login or password.";
+//            }
+//            throw new AuthenticationServiceException(msg, e);
+//        } finally {
+//            //Clear the request data to prevent later memory access
+//            request.clear();
+//        }
+//
+//        Authentication authToken = createAuthenticationToken(authentication.getPrincipal(), null, account);
+//
+//        return authToken;
+//    }
+//
+//    public Authentication createAuthenticationToken(Object principal, Object credentials, Account account) throws AuthenticationException {
+//        return this.authenticationTokenFactory.createAuthenticationToken(
+//                principal, credentials, getGrantedAuthorities(account), account);
+//    }
 
     /**
      * Returns <code>true</code> if this <Code>AuthenticationProvider</code> supports the indicated
@@ -459,5 +526,16 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
         return Collections.emptySet();
     }
 
+    //@since 0.4.0
+    private String getIdSitePrincipalValue(Account account) {
+        switch (this.idSitePrincipalAccountIdField) {
+            case EMAIL:
+                return account.getEmail();
+            case USERNAME:
+                return account.getUsername();
+            default:
+                throw new UnsupportedOperationException("unrecognized idSitePrincipalAccountIdField value: " + this.idSitePrincipalAccountIdField);
+        }
+    }
 
 }

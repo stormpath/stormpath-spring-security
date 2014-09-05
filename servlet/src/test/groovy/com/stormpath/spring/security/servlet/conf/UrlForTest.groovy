@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.stormpath.spring.security.web.utils;
+package com.stormpath.spring.security.servlet.conf
+
+import org.junit.Test
+
+import static org.junit.Assert.*;
 
 /**
- * @since 0.3.0
+ * @since 0.4.0
  */
-public class Constants {
+class UrlForTest {
 
-    public static final String STORMPATH_BASE_URL = "https://api.stormpath.com/v1/";
-
-    public static final String DEFAULT_CONFIG_INI_FILE = "defaultConfig.ini";
-    public static final String CUSTOM_CONFIG_INI_FILE = "config.ini";
-
-    public static final String DEFAULT_ENDPOINTS_FILE = "defaultEndpoints.properties";
-    public static final String CUSTOM_ENDPOINTS_FILE = "endpoints.properties";
-
+    @Test
+    public void testOverride() {
+        assertEquals(UrlFor.get("form_login"), "/form_login.jsp")
+        assertEquals(UrlFor.get("idsite_logout.action"), "/idsite/logout")
+        assertEquals(UrlFor.get("idsite_login.action"), "/idsite/login")
+    }
 }

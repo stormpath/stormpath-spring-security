@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.stormpath.spring.security.web.conf;
+package com.stormpath.spring.security.servlet.conf;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ import java.util.*;
  * {@code Section} is itself a map of {@code String} name/value pairs.  Name/value pairs are guaranteed to be unique
  * within each {@code Section} only - not across the entire {@code OverridableIni} instance.
  *
- * @since 0.3.0
+ * @since 0.4.0
  */
 public class OverridableIni implements Map<String, OverridableIni.Section> {
 
@@ -207,8 +207,8 @@ public class OverridableIni implements Map<String, OverridableIni.Section> {
 
     /**
      * Creates a new {@code OverridableIni} instance loaded with the INI-formatted data in the resource at the given path.  The
-     * resource path may be any value interpretable by the
-     * {@link ResourceUtils#getInputStreamForPath(String) ResourceUtils.getInputStreamForPath} method.
+     * resource path may be any value interpretable by this class' ClassLoader by means of {@link java.lang.ClassLoader#getResourceAsStream(String)
+     * getResourceAsStream(String)} method.
      *
      * @param resourcePath the resource location of the INI data to load when creating the {@code OverridableIni} instance.
      * @return a new {@code OverridableIni} instance loaded with the INI-formatted data in the resource at the given path.
@@ -225,8 +225,8 @@ public class OverridableIni implements Map<String, OverridableIni.Section> {
 
     /**
      * Loads data from the specified resource path into this current {@code OverridableIni} instance.  The
-     * resource path may be any value interpretable by the
-     * {@link ResourceUtils#getInputStreamForPath(String) ResourceUtils.getInputStreamForPath} method.
+     * resource path may be any value interpretable by this class' ClassLoader by means of {@link java.lang.ClassLoader#getResourceAsStream(String)
+     * getResourceAsStream(String)} method.
      *
      * @param resourcePath the resource location of the INI data to load into this instance.
      * @throws ConfigurationException if the path cannot be loaded

@@ -21,40 +21,12 @@
 	<!-- Define ID Site Servlet -->
     <servlet>
         <servlet-name>idSiteServlet</servlet-name>
-        <!--<servlet-class>org.springframework.web.context.support.HttpRequestHandlerServlet</servlet-class>-->
-        <servlet-class>com.stormpath.spring.security.web.servlet.IDSiteServlet</servlet-class>
-        <init-param>
-            <param-name>contextConfigLocation</param-name>
-            <!--<param-value>/WEB-INF/spring/appServlet/servlet-context.xml;/WEB-INF/spring/appServlet/stormpath-servlet-context.xml</param-value>-->
-            <param-value>stormpath-servlet-context.xml</param-value>
-        </init-param>
-        <!--<init-param>-->
-            <!--&lt;!&ndash;<param-name>contextConfigLocation</param-name>&ndash;&gt;-->
-            <!--&lt;!&ndash;<param-value>/WEB-INF/spring/appServlet/servlet-context.xml;/WEB-INF/spring/appServlet/stormpath-servlet-context.xml</param-value>&ndash;&gt;-->
-            <!--&lt;!&ndash;<param-value>/WEB-INF/spring/appServlet/stormpath-servlet-context.xml, /WEB-INF/spring/root-context.xml, /WEB-INF/spring-security.xml</param-value>&ndash;&gt;-->
-        <!--</init-param>-->
+        <servlet-class>com.stormpath.spring.security.servlet.http.IDSiteServlet</servlet-class>
     </servlet>
-
-    <context-param>
-        <param-name>locatorFactorySelector</param-name>
-        <param-value>stormpath-servlet-context.xml</param-value>
-    </context-param>
-
-    <!-- How is my parent context called? -->
-    <!--<context-param>-->
-        <!--<param-name>parentContextKey</param-name>-->
-        <!--<param-value>parentApplicationContext</param-value>-->
-    <!--</context-param>-->
-
 
     <servlet-mapping>
         <servlet-name>idSiteServlet</servlet-name>
         <url-pattern>/idsite/*</url-pattern>
     </servlet-mapping>
-
-    <!--<listener>-->
-        <!--<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>-->
-    <!--</listener>-->
-
 
 </web-app>

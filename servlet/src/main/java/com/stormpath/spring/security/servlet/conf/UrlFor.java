@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.stormpath.spring.security.web.conf;
+package com.stormpath.spring.security.servlet.conf;
 
-import com.stormpath.spring.security.web.utils.Constants;
+import com.stormpath.spring.security.servlet.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -25,7 +25,29 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * @since 0.3.0
+ * Provides a single point to access and configure URLs. URLs can be mapped to IDs, providing abstraction
+ * of actual URLs. Pages and code do not need to be modified when URLs change, only a single mapping file needs to
+ * be updated.
+ * <p/>
+ * This implementation reads <code>resources/defaultEndpoints.properties</code> and then
+ * <code>resources/endpoints.properties</code> overriding colliding property keys found in <code>defaultEndpoints.properties</code>.
+ * <p/>
+ * Applications using this plugin must add or update any desired endpoint just creating a <code>resources/endpoints.properties</code>
+ * file like this:
+ * <pre>
+ *  ###### Custom routes ######
+ *  ## UI ##
+ *  home = /home.jsp
+ *  account = /account/index.jsp
+ *  ## Actions ##
+ *  customData.action = /account/customData
+ * </pre>
+ * And later, if in your code you need to reference the <code>/account/index.jsp</code> page for example, you just need to do:
+ * <pre>
+ *     UrlFor.get("account");
+ * </pre>
+ *
+ * @since 0.4.0
  */
 public class UrlFor {
 

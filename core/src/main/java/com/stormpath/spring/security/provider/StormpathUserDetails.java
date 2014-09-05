@@ -53,7 +53,7 @@ public class StormpathUserDetails implements UserDetails {
         }
         this.password = password;
         this.stormpathUserDetails = createUnmodifiableMap(account);
-        this.username = account.getUsername();
+        this.username = username;
         this.authorities = grantedAuthorities;
     }
 

@@ -56,14 +56,13 @@ class UsernamePasswordAuthenticationTokenFactoryTest {
         expect(account.middleName).andReturn acctMiddleName
         expect(account.surname).andReturn acctSurname
         expect(account.status).andReturn acctStatus times 2
-        expect(account.username).andReturn acctUsername
 
         replay account
 
         def token = authenticationTokenFactory.createAuthenticationToken("foo", "bar", gas, account)
         assertNotNull token
         assertThat token, instanceOf(UsernamePasswordAuthenticationToken.class)
-        assertEquals acctUsername, ((StormpathUserDetails)token.principal).getUsername()
+        assertEquals "foo", ((StormpathUserDetails)token.principal).getUsername()
         assertEquals "bar", token.getCredentials()
         assertArrayEquals gas.toArray(), token.getAuthorities().toArray()
         assertEquals gas.size(), token.getAuthorities().size()
