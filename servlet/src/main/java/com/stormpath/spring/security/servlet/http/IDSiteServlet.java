@@ -48,7 +48,7 @@ import java.util.Map;
 /**
  * This servlet is in charge of handling all the communication with Stormpath's IDSite.
  * <p/>
- * In order for it to properly work in your Web Application, you need to enable the auto-feature scanning for the following
+ * In order for it to properly work in your Web Application, you need to enable the auto-scanning feature for the following
  * package: com.stormpath.spring.security.servlet.service. For example, in your application's servlet context definition:
  * <p/>
  * <pre>
