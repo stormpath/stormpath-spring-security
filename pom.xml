@@ -235,12 +235,6 @@
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${servlet.version}</version>
             </dependency>
-            <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>javax.servlet</artifactId>
-                <version>${servlet.version}</version>
-                <scope>test</scope>
-            </dependency>
 
             <!-- Test Libraries -->
             <dependency>
