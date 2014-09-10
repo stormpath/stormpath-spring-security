@@ -310,12 +310,37 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
         return authenticationTokenFactory;
     }
 
+    /**
+     * Configures the field that will be set as the principal when creating the {@link org.springframework.security.core.Authentication authentication token}
+     * after a successful ID Site login.
+     * <p/>
+     * When users login via ID Site, we do not have access to the actual login information. Thus, we do not know whether the
+     * user logged in with his username or his email. Via this field, the developer can configure whether the principal information
+     * will be either the {@link IdSiteAccountIDField#USERNAME account username} or the {@link IdSiteAccountIDField#EMAIL account email}.
+     * <p/>
+     * By default, the account `email` is used.
+     *
+     * @param idField either `username` or `email` to express the desired principal to set when constructing the {@Link Authentication authentication token}
+     *                after a successful ID Site login.
+     *
+     * @see com.stormpath.spring.security.authc.IdSiteAccountIDField
+     * @since 0.4.0
+     */
     public void setIdSitePrincipalAccountIdField(String idField) {
         Assert.notNull(idField);
         this.idSitePrincipalAccountIdField = IdSiteAccountIDField.fromName(idField);
     }
 
-    public String getIdSitePrincipalAccountIdField(String idField) {
+    /**
+     * Returns the account field that will be used as the principal for the {@link org.springframework.security.core.Authentication authentication token}
+     * after a successful ID Site login.
+     *
+     * @return the account field that will be used as the principal for the {@link org.springframework.security.core.Authentication authentication token}
+     * after a successful ID Site login.
+     *
+     * @since 0.4.0
+     */
+    public String getIdSitePrincipalAccountIdField() {
         return this.idSitePrincipalAccountIdField.toString();
     }
 
@@ -407,41 +432,6 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
         return this.authenticationTokenFactory.createAuthenticationToken(
                 principal, credentials, getGrantedAuthorities(account), account);
     }
-
-//    @Override
-//    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-//
-//        assertState();
-//        AuthenticationRequest request = createAuthenticationRequest(authentication);
-//        Application application = ensureApplicationReference();
-//
-//        Account account;
-//
-//        try {
-//            account = application.authenticateAccount(request).getAccount();
-//        } catch (ResourceException e) {
-//            String msg = StringUtils.clean(e.getMessage());
-//            if (msg == null) {
-//                msg = StringUtils.clean(e.getDeveloperMessage());
-//            }
-//            if (msg == null) {
-//                msg = "Invalid login or password.";
-//            }
-//            throw new AuthenticationServiceException(msg, e);
-//        } finally {
-//            //Clear the request data to prevent later memory access
-//            request.clear();
-//        }
-//
-//        Authentication authToken = createAuthenticationToken(authentication.getPrincipal(), null, account);
-//
-//        return authToken;
-//    }
-//
-//    public Authentication createAuthenticationToken(Object principal, Object credentials, Account account) throws AuthenticationException {
-//        return this.authenticationTokenFactory.createAuthenticationToken(
-//                principal, credentials, getGrantedAuthorities(account), account);
-//    }
 
     /**
      * Returns <code>true</code> if this <Code>AuthenticationProvider</code> supports the indicated

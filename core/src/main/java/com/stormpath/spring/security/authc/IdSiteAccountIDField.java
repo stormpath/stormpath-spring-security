@@ -15,6 +15,14 @@
  */
 package com.stormpath.spring.security.authc;
 
+/**
+ * When users login via ID Site, we do not have access to the actual login information. Thus, we do not know whether the
+ * user logged in with his username or his email. This Enumeration constraints the actual {@link com.stormpath.sdk.account.Account account}
+ * properties that the developer can select as the Principal values that {@link com.stormpath.spring.security.provider.StormpathAuthenticationProvider StormpathAuthenticationProvider}
+ * will set when creating the {@link org.springframework.security.core.Authentication authentication token} after a successful ID Site login.
+ *
+ * @since 0.4.0
+ */
 public enum IdSiteAccountIDField {
 
     USERNAME, EMAIL;
