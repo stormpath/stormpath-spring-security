@@ -15,12 +15,17 @@
  */
 package com.stormpath.spring.security.servlet.http
 
+import com.stormpath.sdk.account.Account
+import com.stormpath.sdk.idsite.AccountResult
 import com.stormpath.sdk.idsite.IdSiteCallbackHandler
 import com.stormpath.sdk.idsite.IdSiteResultListener
+import com.stormpath.spring.security.authc.IdSiteAccountIDField
 import com.stormpath.spring.security.authc.IdSiteAuthenticationToken
 import com.stormpath.spring.security.provider.StormpathAuthenticationProvider
 import com.stormpath.spring.security.servlet.conf.Configuration
 import com.stormpath.spring.security.servlet.service.IdSiteService
+import org.easymock.IAnswer
+import static org.junit.Assert.*
 import org.junit.Test
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.security.core.Authentication
@@ -34,6 +39,7 @@ import static org.easymock.EasyMock.anyObject
 import static org.easymock.EasyMock.createMockBuilder
 import static org.easymock.EasyMock.createStrictMock
 import static org.easymock.EasyMock.expect
+import static org.easymock.EasyMock.getCurrentArguments
 import static org.easymock.EasyMock.replay
 import static org.easymock.EasyMock.verify
 
@@ -89,10 +95,15 @@ class IdSiteServletTest {
         def servletContext = createStrictMock(ServletContext)
         def beanFactory = createStrictMock(BeanFactory)
         def callbackUri = Configuration.getLoginRedirectUri()
+        def callbackHandler = createStrictMock(IdSiteCallbackHandler)
         def authentication = createStrictMock(Authentication)
+        def accountResult = createStrictMock(AccountResult)
+        def account = createStrictMock(Account)
+        def accountEmail = "some@email.com"
 
         IdSiteServlet servlet = createMockBuilder(IdSiteServlet.class)
                 .addMockedMethod("getBeanFactory", ServletContext).createMock();
+        servlet.idSitePrincipalAccountIdField = IdSiteAccountIDField.EMAIL
 
         expect(servletContextEvent.getServletContext()).andReturn(servletContext)
         expect(servlet.getBeanFactory(servletContext)).andReturn(beanFactory)
@@ -100,21 +111,34 @@ class IdSiteServletTest {
         expect(beanFactory.getBean("authenticationProvider")).andReturn(stormpathAuthenticationProvider)
         expect(beanFactory.containsBean("idSiteResultListener")).andReturn(true)
         expect(beanFactory.getBean("idSiteResultListener")).andReturn(idSiteResultListener)
+
+        expect(idSiteService.getCallbackHandler(request, idSiteResultListener)).andReturn(callbackHandler)
         expect(request.getRequestURI()).andReturn("/idsite/callbackLogin")
-        expect(request.getMethod()).andReturn("GET")
-        expect(request.getHeaderNames()).andReturn(Collections.emptyEnumeration())
-        expect(request.getParameterMap()).andReturn(Collections.EMPTY_MAP)
-        expect(stormpathAuthenticationProvider.authenticate(anyObject(IdSiteAuthenticationToken))).andReturn(authentication)
+        expect(callbackHandler.getAccountResult()).andReturn(accountResult)
+        expect(accountResult.getAccount()).andReturn(account)
+        expect(account.getEmail()).andReturn(accountEmail)
+
+        expect(stormpathAuthenticationProvider.authenticate(anyObject(IdSiteAuthenticationToken))).andAnswer( new IAnswer<Authentication>() {
+            Authentication answer() throws Throwable {
+                def idSiteAuthenticationToken = getCurrentArguments()[0] as IdSiteAuthenticationToken
+                assertEquals idSiteAuthenticationToken.getPrincipal(), accountEmail
+                assertEquals idSiteAuthenticationToken.getAccount(), account
+                assertEquals idSiteAuthenticationToken.getCredentials(), null
+
+                return authentication
+            }
+        })
+
         expect(response.sendRedirect(callbackUri))
 
-        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener,
-                servletContextEvent, servletContext, beanFactory, authentication
+        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener, callbackHandler,
+                accountResult, account, servletContextEvent, servletContext, beanFactory, authentication
 
         servlet.contextInitialized(servletContextEvent)
         servlet.doGet(request, response)
 
-        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener,
-                servletContextEvent, servletContext, beanFactory, authentication
+        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener, callbackHandler,
+                accountResult, account, servletContextEvent, servletContext, beanFactory, authentication
     }
 
     @Test

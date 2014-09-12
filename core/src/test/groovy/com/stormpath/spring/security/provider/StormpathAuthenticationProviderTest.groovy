@@ -265,6 +265,7 @@ class StormpathAuthenticationProviderTest {
         assertTrue authenticationProvider.supports(AnonymousAuthenticationToken)
         assertTrue authenticationProvider.supports(Authentication)
         assertTrue authenticationProvider.supports(AbstractAuthenticationToken)
+        assertTrue authenticationProvider.supports(IdSiteAuthenticationToken)
         assertFalse authenticationProvider.supports(String)
         assertFalse authenticationProvider.supports(Object)
     }
@@ -314,23 +315,9 @@ class StormpathAuthenticationProviderTest {
 
         expect(client.dataStore).andStubReturn(dataStore)
         expect(dataStore.getResource(eq(appHref), same(Application))).andReturn(app)
-        expect(authentication.credentials).andReturn httpRequest
-        expect(app.newIdSiteCallbackHandler(httpRequest)).andAnswer( new IAnswer<IdSiteCallbackHandler>() {
-            IdSiteCallbackHandler answer() throws Throwable {
-                def request = getCurrentArguments()[0] as HttpRequest
+        expect(authentication.getAccount()).andReturn(account)
+        expect(authentication.getPrincipal()).andReturn(acctEmail)
 
-                assertEquals httpRequest, request
-
-                return idSiteCallbackHandler
-            }
-        })
-
-        expect(authentication.getPrincipal()).andReturn(listener)
-        expect(idSiteCallbackHandler.setResultListener(listener)).andReturn(idSiteCallbackHandler)
-        expect(idSiteCallbackHandler.getAccountResult()).andReturn(accountResult)
-        expect(accountResult.account).andReturn account
-
-        expect(account.getEmail()).andReturn acctEmail
         expect(account.groups).andReturn groupList
         expect(group.customData).andReturn groupCustomData
         expect(groupCustomData.get("springSecurityPermissions")).andReturn groupSpringSecurityGrantedAuthorities

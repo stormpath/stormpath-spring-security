@@ -15,11 +15,10 @@
  */
 package com.stormpath.spring.security.servlet.http;
 
-import com.stormpath.sdk.http.HttpMethod;
-import com.stormpath.sdk.http.HttpRequest;
-import com.stormpath.sdk.http.HttpRequests;
+import com.stormpath.sdk.account.Account;
 import com.stormpath.sdk.idsite.IdSiteCallbackHandler;
 import com.stormpath.sdk.idsite.IdSiteResultListener;
+import com.stormpath.spring.security.authc.IdSiteAccountIDField;
 import com.stormpath.spring.security.authc.IdSiteAuthenticationToken;
 import com.stormpath.spring.security.provider.StormpathAuthenticationProvider;
 import com.stormpath.spring.security.servlet.conf.Configuration;
@@ -30,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.Assert;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.ServletContext;
@@ -78,6 +78,8 @@ public class IdSiteServlet extends HttpServlet implements ServletContextListener
     protected static StormpathAuthenticationProvider authenticationProvider;
     private static IdSiteResultListener idSiteResultListener;
 
+    private IdSiteAccountIDField idSitePrincipalAccountIdField = IdSiteAccountIDField.EMAIL;
+
     /**
      * All ID Site-related requests are handled here relying on the {@link com.stormpath.spring.security.servlet.service.IdSiteService} and {@link StormpathAuthenticationProvider} to
      * do all the work.
@@ -114,14 +116,10 @@ public class IdSiteServlet extends HttpServlet implements ServletContextListener
     }
 
     protected void processLoginCallback(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Convert the framework-specific HTTP Request into a format the Stormpath SDK understands:
-        HttpRequest httpRequest = HttpRequests.method(HttpMethod.fromName(request.getMethod()))
-                .headers(getHttpRequestHeaders(request))
-                .parameters(request.getParameterMap())
-                .build();
-        Authentication authentication = new IdSiteAuthenticationToken(httpRequest, this.idSiteResultListener);
-
-        authentication = authenticationProvider.authenticate(authentication);
+        IdSiteCallbackHandler callbackHandler = idSiteService.getCallbackHandler(request, this.idSiteResultListener);
+        //At this point, the IdSiteResultListener will be notified about the login
+        Account account = callbackHandler.getAccountResult().getAccount();
+        Authentication authentication = authenticationProvider.authenticate(new IdSiteAuthenticationToken(getIdSitePrincipalValue(account), account));
         SecurityContextHolder.clearContext();
         SecurityContextHolder.getContext().setAuthentication(authentication);
         response.sendRedirect(Configuration.getLoginRedirectUri());
@@ -137,6 +135,7 @@ public class IdSiteServlet extends HttpServlet implements ServletContextListener
     protected void processLogoutCallback(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         SecurityContextHolder.clearContext();
         IdSiteCallbackHandler callbackHandler = idSiteService.getCallbackHandler(request, idSiteResultListener);
+        //We need to invoke this operation in order for the IdSiteResultListener to be notified about the logout
         callbackHandler.getAccountResult();
         response.sendRedirect(Configuration.getLoginRedirectUri());
     }
@@ -174,6 +173,52 @@ public class IdSiteServlet extends HttpServlet implements ServletContextListener
         return WebApplicationContextUtils
                 .getRequiredWebApplicationContext(context)
                 .getAutowireCapableBeanFactory();
+    }
+
+    /**
+     * Configures the field that will be set as the principal when creating the {@link org.springframework.security.core.Authentication authentication token}
+     * after a successful ID Site login.
+     * <p/>
+     * When users login via ID Site, we do not have access to the actual login information. Thus, we do not know whether the
+     * user logged in with his username or his email. Via this field, the developer can configure whether the principal information
+     * will be either the {@link com.stormpath.spring.security.authc.IdSiteAccountIDField#USERNAME account username} or the {@link com.stormpath.spring.security.authc.IdSiteAccountIDField#EMAIL account email}.
+     * <p/>
+     * By default, the account `email` is used.
+     *
+     * @param idField either `username` or `email` to express the desired principal to set when constructing the {@Link Authentication authentication token}
+     *                after a successful ID Site login.
+     *
+     * @see com.stormpath.spring.security.authc.IdSiteAccountIDField
+     * @since 0.4.0
+     */
+    public void setIdSitePrincipalAccountIdField(String idField) {
+        Assert.notNull(idField);
+        this.idSitePrincipalAccountIdField = IdSiteAccountIDField.fromName(idField);
+    }
+
+    /**
+     * Returns the account field that will be used as the principal for the {@link org.springframework.security.core.Authentication authentication token}
+     * after a successful ID Site login.
+     *
+     * @return the account field that will be used as the principal for the {@link org.springframework.security.core.Authentication authentication token}
+     * after a successful ID Site login.
+     *
+     * @since 0.4.0
+     */
+    public String getIdSitePrincipalAccountIdField() {
+        return this.idSitePrincipalAccountIdField.toString();
+    }
+
+    //@since 0.4.0
+    private String getIdSitePrincipalValue(Account account) {
+        switch (this.idSitePrincipalAccountIdField) {
+            case EMAIL:
+                return account.getEmail();
+            case USERNAME:
+                return account.getUsername();
+            default:
+                throw new UnsupportedOperationException("unrecognized idSitePrincipalAccountIdField value: " + this.idSitePrincipalAccountIdField);
+        }
     }
 
 }

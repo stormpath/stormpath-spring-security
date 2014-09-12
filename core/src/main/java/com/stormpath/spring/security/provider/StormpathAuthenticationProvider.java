@@ -22,11 +22,7 @@ import com.stormpath.sdk.authc.UsernamePasswordRequest;
 import com.stormpath.sdk.client.Client;
 import com.stormpath.sdk.group.Group;
 import com.stormpath.sdk.group.GroupList;
-import com.stormpath.sdk.idsite.IdSiteCallbackHandler;
-import com.stormpath.sdk.idsite.IdSiteResultListener;
-import com.stormpath.sdk.lang.Assert;
 import com.stormpath.sdk.resource.ResourceException;
-import com.stormpath.spring.security.authc.IdSiteAccountIDField;
 import com.stormpath.spring.security.authc.IdSiteAuthenticationToken;
 import com.stormpath.spring.security.authz.permission.Permission;
 import com.stormpath.spring.security.util.StringUtils;
@@ -150,7 +146,6 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
     private AccountGrantedAuthorityResolver accountGrantedAuthorityResolver;
     private AccountPermissionResolver accountPermissionResolver;
     private AuthenticationTokenFactory authenticationTokenFactory;
-    private IdSiteAccountIDField idSitePrincipalAccountIdField = IdSiteAccountIDField.EMAIL;
 
     private Application application; //acquired via the client at runtime, not configurable by the StormpathAuthenticationProvider user
 
@@ -311,40 +306,6 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
     }
 
     /**
-     * Configures the field that will be set as the principal when creating the {@link org.springframework.security.core.Authentication authentication token}
-     * after a successful ID Site login.
-     * <p/>
-     * When users login via ID Site, we do not have access to the actual login information. Thus, we do not know whether the
-     * user logged in with his username or his email. Via this field, the developer can configure whether the principal information
-     * will be either the {@link com.stormpath.spring.security.authc.IdSiteAccountIDField#USERNAME account username} or the {@link com.stormpath.spring.security.authc.IdSiteAccountIDField#EMAIL account email}.
-     * <p/>
-     * By default, the account `email` is used.
-     *
-     * @param idField either `username` or `email` to express the desired principal to set when constructing the {@Link Authentication authentication token}
-     *                after a successful ID Site login.
-     *
-     * @see com.stormpath.spring.security.authc.IdSiteAccountIDField
-     * @since 0.4.0
-     */
-    public void setIdSitePrincipalAccountIdField(String idField) {
-        Assert.notNull(idField);
-        this.idSitePrincipalAccountIdField = IdSiteAccountIDField.fromName(idField);
-    }
-
-    /**
-     * Returns the account field that will be used as the principal for the {@link org.springframework.security.core.Authentication authentication token}
-     * after a successful ID Site login.
-     *
-     * @return the account field that will be used as the principal for the {@link org.springframework.security.core.Authentication authentication token}
-     * after a successful ID Site login.
-     *
-     * @since 0.4.0
-     */
-    public String getIdSitePrincipalAccountIdField() {
-        return this.idSitePrincipalAccountIdField.toString();
-    }
-
-    /**
      * Sets the {@link AuthenticationTokenFactory} used to create authenticated tokens. Unless overridden via
      * {@link #setAuthenticationTokenFactory(AuthenticationTokenFactory)} setAuthenticationTokenFactory},
      * the default instance is a {@link UsernamePasswordAuthenticationTokenFactory}.
@@ -393,9 +354,7 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
         try {
 
             if(authentication instanceof IdSiteAuthenticationToken) {
-                IdSiteCallbackHandler callbackHandler = application.newIdSiteCallbackHandler(authentication.getCredentials());
-                callbackHandler.setResultListener((IdSiteResultListener) authentication.getPrincipal());
-                account = callbackHandler.getAccountResult().getAccount();
+                account = ((IdSiteAuthenticationToken) authentication).getAccount();
             } else {
                 //Must be a UsernamePasswordAuthenticationToken
                 request = createAuthenticationRequest(authentication);
@@ -418,14 +377,7 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
             }
         }
 
-        Authentication authToken;
-        if(authentication instanceof IdSiteAuthenticationToken) {
-            authToken = createAuthenticationToken(getIdSitePrincipalValue(account), null, account);
-        } else {
-            authToken = createAuthenticationToken(authentication.getPrincipal(), null, account);
-        }
-
-        return authToken;
+        return createAuthenticationToken(authentication.getPrincipal(), null, account);
     }
 
     protected Authentication createAuthenticationToken(Object principal, Object credentials, Account account) throws AuthenticationException {
@@ -514,18 +466,6 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
             return accountPermissionResolver.resolvePermissions(account);
         }
         return Collections.emptySet();
-    }
-
-    //@since 0.4.0
-    private String getIdSitePrincipalValue(Account account) {
-        switch (this.idSitePrincipalAccountIdField) {
-            case EMAIL:
-                return account.getEmail();
-            case USERNAME:
-                return account.getUsername();
-            default:
-                throw new UnsupportedOperationException("unrecognized idSitePrincipalAccountIdField value: " + this.idSitePrincipalAccountIdField);
-        }
     }
 
 }

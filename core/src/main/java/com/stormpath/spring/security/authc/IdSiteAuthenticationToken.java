@@ -15,8 +15,7 @@
  */
 package com.stormpath.spring.security.authc;
 
-import com.stormpath.sdk.http.HttpRequest;
-import com.stormpath.sdk.idsite.IdSiteResultListener;
+import com.stormpath.sdk.account.Account;
 import com.stormpath.sdk.lang.Assert;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
@@ -24,49 +23,78 @@ import java.util.Collections;
 
 /**
  * This {@link org.springframework.security.core.Authentication Authentication} sub-class is specific to ID Site. It is
- * used to hold the required information to allow a Spring Security application to login via its ID Site portal.
+ * used to represent an already logged in user via ID Site.
  * <p/>
- * ID Site does not actually require any login information before it gets displayed. However we are wrapping the ID Site information
- * ({@link com.stormpath.sdk.idsite.IdSiteResultListener IdSiteResultListener} and {@link HttpRequest})
- * in the {@link org.springframework.security.core.Authentication Authentication} interface in order to allow our
- * {@link com.stormpath.spring.security.provider.StormpathAuthenticationProvider StormpathAuthenticationProvider} to seamlessly provide an authentication mechanism
- * that can homogeneously receive both form-based or ID Site authentication requests.
+ * Here we hold the {@link com.stormpath.sdk.account.Account authenticated Stormpath account} tha was obtained after the login.
+ * <p/>
+ * At the time this token is created the user has already being successfully authenticated in the ID Site. This token must
+ * be passed through Spring Security's login process so the framework is aware of the recently logged in user. For example:
+ * <pre>
+ *     Account account = callbackHandler.getAccountResult().getAccount();
+ *     Authentication authcToken = new IdSiteAuthenticationToken(account.getEmail(), account)
+ *     Authentication authentication = authenticationProvider.authenticate(authcToken);
+ *     SecurityContextHolder.clearContext();
+ *     SecurityContextHolder.getContext().setAuthentication(authentication);
+ * </pre>
+ * <p/>
+ * After that line is executed, Spring Security will be fully aware of the user's information: the Stormpath Account, its
+ * roles and permissions.
  *
  * @since 0.4.0
  */
 public class IdSiteAuthenticationToken extends AbstractAuthenticationToken {
 
-    private final HttpRequest request;
-    private final IdSiteResultListener idSiteResultListener;
+    private final String principal;
+    private final Account account;
 
-    public IdSiteAuthenticationToken(HttpRequest request, IdSiteResultListener listener) {
+    /**
+     * Since this {@link org.springframework.security.core.Authentication Authentication} represents and already logged in
+     * account via ID Site, the principal can be anything that univocally identifies the logged in user: for example,
+     * the username or email.
+     *
+     * @param principal univocal identification of the logged in user: for example, the account's username or email.
+     * @param account the {@link com.stormpath.sdk.account.Account Account} received from the {@link com.stormpath.sdk.idsite.IdSiteCallbackHandler
+     * IdSiteCallbackHandler} after a successful login.
+     */
+    public IdSiteAuthenticationToken(String principal, Account account) {
         super(Collections.EMPTY_LIST);
-        Assert.notNull(request);
-        this.request = request;
-        this.idSiteResultListener = listener;
+        Assert.notNull(principal);
+        Assert.notNull(account);
+        this.principal = principal;
+        this.account = account;
     }
 
     /**
-     * Returns the {@link com.stormpath.sdk.idsite.IdSiteResultListener IdSiteResultListener} that will be
-     * notified after the ID Site action has been executed: login, registration or logout.
+     * Either the {@link com.stormpath.sdk.account.Account Account}'s email or username used when this token was created.
      *
-     * @return the {@link com.stormpath.sdk.idsite.IdSiteResultListener IdSiteResultListener} that will be
-     * notified after the ID Site action has been executed: login, registration or logout.
+     * @return either the {@link com.stormpath.sdk.account.Account Account}'s email or username.
      */
     @Override
     public Object getPrincipal() {
-        return this.idSiteResultListener;
+        return this.principal;
     }
 
     /**
-     * Returns the {@link com.stormpath.sdk.http.HttpRequest HttpRequest} that will be used to display the actual ID Site screen.
+     * Always returns `null` as this ID Site token does not actually require any credentials
      *
-     * @return the {@link com.stormpath.sdk.http.HttpRequest HttpRequest} that will be used to display the actual ID Site screen.
+     * @return `null` as this ID Site token does not actually require any credentials.
      *
      */
     @Override
     public Object getCredentials() {
-        return this.request;
+        return null;
+    }
+
+    /**
+     * Since this {@link org.springframework.security.core.Authentication Authentication} represents and already logged in
+     * account via ID Site, the {@link com.stormpath.sdk.account.Account Stormpath account} is actually already available
+     * when this token is created. We keep it here so the {@link com.stormpath.spring.security.provider.StormpathAuthenticationProvider
+     * StormpathAuthenticationProvider} does not need to retrieve it again from Stormpath.
+     *
+     * @return the {@link Account authenticated Stormpath account} tha was obtained after a successful ID Site login.
+     */
+    public Account getAccount() {
+        return this.account;
     }
 
 }
