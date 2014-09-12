@@ -24,7 +24,7 @@ import com.stormpath.spring.security.authc.IdSiteAuthenticationToken;
 import com.stormpath.spring.security.provider.StormpathAuthenticationProvider;
 import com.stormpath.spring.security.servlet.conf.Configuration;
 import com.stormpath.spring.security.servlet.conf.UrlFor;
-import com.stormpath.spring.security.servlet.service.IDSiteService;
+import com.stormpath.spring.security.servlet.service.IdSiteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -60,9 +60,9 @@ import java.util.Map;
  * @since 0.4.0
  */
 @WebListener
-public class IDSiteServlet extends HttpServlet implements ServletContextListener {
+public class IdSiteServlet extends HttpServlet implements ServletContextListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(IDSiteServlet.class);
+    private static final Logger logger = LoggerFactory.getLogger(IdSiteServlet.class);
 
     // This servlet will only handle requests for these URIs
     private static final String IDSITE_LOGIN_ACTION = UrlFor.get("idsite_login.action");
@@ -74,12 +74,12 @@ public class IDSiteServlet extends HttpServlet implements ServletContextListener
     private static final String IDSITE_LOGOUT_CALLBACK_ACTION = UrlFor.get("idsite_logout_callback.action");
     private static final String IDSITE_LOGOUT_REDIRECT_URL = Configuration.getBaseUrl() + IDSITE_LOGOUT_CALLBACK_ACTION;
 
-    protected static IDSiteService idSiteService;
+    protected static IdSiteService idSiteService;
     protected static StormpathAuthenticationProvider authenticationProvider;
     private static IdSiteResultListener idSiteResultListener;
 
     /**
-     * All ID Site-related requests are handled here relying on the {@link IDSiteService} and {@link StormpathAuthenticationProvider} to
+     * All ID Site-related requests are handled here relying on the {@link com.stormpath.spring.security.servlet.service.IdSiteService} and {@link StormpathAuthenticationProvider} to
      * do all the work.
      *
      * @param request  an {@link javax.servlet.http.HttpServletRequest} object that contains the request the client has made of the servlet.
@@ -149,7 +149,7 @@ public class IDSiteServlet extends HttpServlet implements ServletContextListener
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         BeanFactory beanFactory = getBeanFactory(sce.getServletContext());
-        idSiteService = (IDSiteService) beanFactory.getBean("idSiteService");
+        idSiteService = (IdSiteService) beanFactory.getBean("idSiteService");
         authenticationProvider = (StormpathAuthenticationProvider) beanFactory.getBean("authenticationProvider");
         if (beanFactory.containsBean("idSiteResultListener")) {
             idSiteResultListener = (IdSiteResultListener) beanFactory.getBean("idSiteResultListener");

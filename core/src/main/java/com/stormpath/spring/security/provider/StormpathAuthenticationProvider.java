@@ -316,7 +316,7 @@ public class StormpathAuthenticationProvider implements AuthenticationProvider {
      * <p/>
      * When users login via ID Site, we do not have access to the actual login information. Thus, we do not know whether the
      * user logged in with his username or his email. Via this field, the developer can configure whether the principal information
-     * will be either the {@link IdSiteAccountIDField#USERNAME account username} or the {@link IdSiteAccountIDField#EMAIL account email}.
+     * will be either the {@link com.stormpath.spring.security.authc.IdSiteAccountIDField#USERNAME account username} or the {@link com.stormpath.spring.security.authc.IdSiteAccountIDField#EMAIL account email}.
      * <p/>
      * By default, the account `email` is used.
      *

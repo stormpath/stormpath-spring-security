@@ -27,7 +27,6 @@ class ConfigurationTest {
 
     @Test
     public void testOverride() {
-
         Assert.assertEquals(3, Configuration.ini.size())
         assertNotNull(Configuration.ini.getSection("App"))
         assertEquals(Configuration.ini.getSectionProperty("App", "baseUrl"), "http://localhost:8080")

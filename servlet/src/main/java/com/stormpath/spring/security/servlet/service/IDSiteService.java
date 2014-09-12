@@ -24,14 +24,14 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * This service provide a ID Site-related operations such as creating the <code>redirectUri</code> for both login and
- * logout. This service is used by the {@link com.stormpath.spring.security.servlet.http.IDSiteServlet IDSiteServlet}.
+ * This service provides ID Site-related operations such as creating the <code>redirectUri</code> for both login and
+ * logout. This service is used by the {@link com.stormpath.spring.security.servlet.http.IdSiteServlet IDSiteServlet}.
  *
  * @since 0.4.0
  */
 @Service(value = "idSiteService")
-public class IDSiteService extends AbstractService {
-    private static final Logger logger = LoggerFactory.getLogger(IDSiteService.class);
+public class IdSiteService extends AbstractService {
+    private static final Logger logger = LoggerFactory.getLogger(IdSiteService.class);
 
     /**
      * Returns the <code>redirectUri</code> to be used when logging in via ID Site.

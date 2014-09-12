@@ -15,6 +15,7 @@
  */
 package com.stormpath.spring.security.servlet.conf
 
+import org.junit.Assert
 import org.junit.Test
 
 import static org.junit.Assert.*;
@@ -26,6 +27,7 @@ class UrlForTest {
 
     @Test
     public void testOverride() {
+        Assert.assertEquals(9, UrlFor.properties.size())
         assertEquals(UrlFor.get("form_login"), "/form_login.jsp")
         assertEquals(UrlFor.get("idsite_logout.action"), "/idsite/logout")
         assertEquals(UrlFor.get("idsite_login.action"), "/idsite/login")

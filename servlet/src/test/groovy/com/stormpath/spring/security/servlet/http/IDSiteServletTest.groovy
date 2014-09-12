@@ -20,8 +20,7 @@ import com.stormpath.sdk.idsite.IdSiteResultListener
 import com.stormpath.spring.security.authc.IdSiteAuthenticationToken
 import com.stormpath.spring.security.provider.StormpathAuthenticationProvider
 import com.stormpath.spring.security.servlet.conf.Configuration
-import com.stormpath.spring.security.servlet.service.IDSiteService
-import com.stormpath.spring.security.servlet.http.IDSiteServlet
+import com.stormpath.spring.security.servlet.service.IdSiteService
 import org.junit.Test
 import org.springframework.beans.factory.BeanFactory
 import org.springframework.security.core.Authentication
@@ -30,24 +29,22 @@ import javax.servlet.ServletContext
 import javax.servlet.ServletContextEvent
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import java.lang.reflect.Method
 
 import static org.easymock.EasyMock.anyObject
 import static org.easymock.EasyMock.createMockBuilder
-import static org.easymock.EasyMock.createStrictMock
 import static org.easymock.EasyMock.createStrictMock
 import static org.easymock.EasyMock.expect
 import static org.easymock.EasyMock.replay
 import static org.easymock.EasyMock.verify
 
-class IDSiteServletTest {
+class IdSiteServletTest {
 
     @Test
     public void testLogin() {
 
         def request = createStrictMock(HttpServletRequest)
         def response = createStrictMock(HttpServletResponse)
-        def idSiteService = createStrictMock(IDSiteService)
+        def idSiteService = createStrictMock(IdSiteService)
         def stormpathAuthenticationProvider = createStrictMock(StormpathAuthenticationProvider)
         def idSiteResultListener = createStrictMock(IdSiteResultListener)
         def servletContextEvent = createStrictMock(ServletContextEvent)
@@ -55,7 +52,7 @@ class IDSiteServletTest {
         def beanFactory = createStrictMock(BeanFactory)
         def callbackUri = "http://api.stormpath.com/sso?jwtRequest=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpUXQiOoE1MDk4ODIzNTIsImp0aSI6IjUzODU2YmJmLTBlOTQtNDFmNC05OTJmLWZiYjFmZjA5MWVkZCIsImlzcyI6IjZKUVBDSVRNTzVFOEhFS042REtCVDdSNTIiLCJzdWIiOiJodHRwczovL2FwaS5zdG9ybXBhdGguY29tL3YxL2FwcGxpY2F0aW6ucy8zVHFieVoxcW83NGVETTRnVG7ySDk0IiwiY2JfdXJpIjoiaHR9cDovL2xvY2FsaG9zdDo4MDgwL2lkc2l0ZS9jYWxsYmFja0xvZ2luIn0.hBva8p4Wy9hAu5nR9euJcMRI0qR0Xkvna-GlBnMOGSQ"
 
-        IDSiteServlet servlet = createMockBuilder(IDSiteServlet.class)
+        IdSiteServlet servlet = createMockBuilder(IdSiteServlet.class)
                 .addMockedMethod("getBeanFactory", ServletContext).createMock();
 
         expect(servletContextEvent.getServletContext()).andReturn(servletContext)
@@ -85,7 +82,7 @@ class IDSiteServletTest {
 
         def request = createStrictMock(HttpServletRequest)
         def response = createStrictMock(HttpServletResponse)
-        def idSiteService = createStrictMock(IDSiteService)
+        def idSiteService = createStrictMock(IdSiteService)
         def stormpathAuthenticationProvider = createStrictMock(StormpathAuthenticationProvider)
         def idSiteResultListener = createStrictMock(IdSiteResultListener)
         def servletContextEvent = createStrictMock(ServletContextEvent)
@@ -94,7 +91,7 @@ class IDSiteServletTest {
         def callbackUri = Configuration.getLoginRedirectUri()
         def authentication = createStrictMock(Authentication)
 
-        IDSiteServlet servlet = createMockBuilder(IDSiteServlet.class)
+        IdSiteServlet servlet = createMockBuilder(IdSiteServlet.class)
                 .addMockedMethod("getBeanFactory", ServletContext).createMock();
 
         expect(servletContextEvent.getServletContext()).andReturn(servletContext)
@@ -125,7 +122,7 @@ class IDSiteServletTest {
 
         def request = createStrictMock(HttpServletRequest)
         def response = createStrictMock(HttpServletResponse)
-        def idSiteService = createStrictMock(IDSiteService)
+        def idSiteService = createStrictMock(IdSiteService)
         def stormpathAuthenticationProvider = createStrictMock(StormpathAuthenticationProvider)
         def idSiteResultListener = createStrictMock(IdSiteResultListener)
         def servletContextEvent = createStrictMock(ServletContextEvent)
@@ -133,7 +130,7 @@ class IDSiteServletTest {
         def beanFactory = createStrictMock(BeanFactory)
         def callbackUri = "http://api.stormpath.com/sso?jwtRequest=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpUXQiOoE1MDk4ODIzNTIsImp0aSI6IjUzODU2YmJmLTBlOTQtNDFmNC05OTJmLWZiYjFmZjA5MWVkZCIsImlzcyI6IjZKUVBDSVRNTzVFOEhFS042REtCVDdSNTIiLCJzdWIiOiJodHRwczovL2FwaS5zdG9ybXBhdGguY29tL3YxL2FwcGxpY2F0aW6ucy8zVHFieVoxcW83NGVETTRnVG7ySDk0IiwiY2JfdXJpIjoiaHR9cDovL2xvY2FsaG9zdDo4MDgwL2lkc2l0ZS9jYWxsYmFja0xvZ2luIn0.hBva8p4Wy9hAu5nR9euJcMRI0qR0Xkvna-GlBnMOGSQ"
 
-        IDSiteServlet servlet = createMockBuilder(IDSiteServlet.class)
+        IdSiteServlet servlet = createMockBuilder(IdSiteServlet.class)
                 .addMockedMethod("getBeanFactory", ServletContext).createMock();
 
         expect(servletContextEvent.getServletContext()).andReturn(servletContext)
@@ -163,7 +160,7 @@ class IDSiteServletTest {
 
         def request = createStrictMock(HttpServletRequest)
         def response = createStrictMock(HttpServletResponse)
-        def idSiteService = createStrictMock(IDSiteService)
+        def idSiteService = createStrictMock(IdSiteService)
         def stormpathAuthenticationProvider = createStrictMock(StormpathAuthenticationProvider)
         def idSiteResultListener = createStrictMock(IdSiteResultListener)
         def servletContextEvent = createStrictMock(ServletContextEvent)
@@ -173,7 +170,7 @@ class IDSiteServletTest {
         def authentication = createStrictMock(Authentication)
         def idSiteCallbackHandler = createStrictMock(IdSiteCallbackHandler)
 
-        IDSiteServlet servlet = createMockBuilder(IDSiteServlet.class)
+        IdSiteServlet servlet = createMockBuilder(IdSiteServlet.class)
                 .addMockedMethod("getBeanFactory", ServletContext).createMock();
 
         expect(servletContextEvent.getServletContext()).andReturn(servletContext)

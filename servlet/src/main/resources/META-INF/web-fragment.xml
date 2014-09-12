@@ -21,7 +21,7 @@
 	<!-- Define ID Site Servlet -->
     <servlet>
         <servlet-name>idSiteServlet</servlet-name>
-        <servlet-class>com.stormpath.spring.security.servlet.http.IDSiteServlet</servlet-class>
+        <servlet-class>com.stormpath.spring.security.servlet.http.IdSiteServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
