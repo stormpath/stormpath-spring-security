@@ -159,16 +159,6 @@ public class IdSiteServlet extends HttpServlet implements ServletContextListener
     public void contextDestroyed(ServletContextEvent sce) {
     }
 
-    private Map<String, String[]> getHttpRequestHeaders(final HttpServletRequest request) {
-        Map<String, String[]> headers = new LinkedHashMap<String, String[]>();
-        Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            headers.put(headerName, new String[] {request.getHeader(headerName)});
-        }
-        return headers;
-    }
-
     protected BeanFactory getBeanFactory(ServletContext context) {
         return WebApplicationContextUtils
                 .getRequiredWebApplicationContext(context)
