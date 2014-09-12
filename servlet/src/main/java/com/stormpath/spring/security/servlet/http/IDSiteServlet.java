@@ -175,8 +175,8 @@ public class IdSiteServlet extends HttpServlet implements ServletContextListener
      * <p/>
      * By default, the account `email` is used.
      *
-     * @param idField either `username` or `email` to express the desired principal to set when constructing the {@Link Authentication authentication token}
-     *                after a successful ID Site login.
+     * @param idField either `username` or `email` to express the desired principal to set when constructing the
+     * {@link org.springframework.security.core.Authentication authentication token} after a successful ID Site login.
      *
      * @see com.stormpath.spring.security.authc.IdSiteAccountIDField
      * @since 0.4.0
