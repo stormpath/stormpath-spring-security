@@ -511,7 +511,7 @@ public class OverridableIni implements Map<String, OverridableIni.Section> {
             return index > 0 && s.charAt(index - 1) == ESCAPE_TOKEN;
         }
 
-        //Protected to access in a test case - NOT considered part of Shiro's public API
+        //Protected to access in a test case - NOT considered part of public API
         protected static String[] splitKeyValue(String keyValueLine) {
             String line = StringUtils.clean(keyValueLine);
             if (line == null) {

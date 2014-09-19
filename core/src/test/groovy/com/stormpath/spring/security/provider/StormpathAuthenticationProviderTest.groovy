@@ -28,7 +28,6 @@ import com.stormpath.sdk.group.GroupList
 import com.stormpath.sdk.http.HttpRequest
 import com.stormpath.sdk.idsite.AccountResult
 import com.stormpath.sdk.idsite.IdSiteCallbackHandler
-import com.stormpath.sdk.idsite.IdSiteResultListener
 import com.stormpath.spring.security.authc.IdSiteAuthenticationToken
 import org.easymock.IAnswer
 import org.junit.Before
@@ -292,7 +291,6 @@ class StormpathAuthenticationProviderTest {
         def authentication = createStrictMock(IdSiteAuthenticationToken)
         def httpRequest = createStrictMock(HttpRequest)
         def idSiteCallbackHandler = createStrictMock(IdSiteCallbackHandler)
-        def listener = createStrictMock(IdSiteResultListener)
         def accountResult = createStrictMock(AccountResult)
         def client = createStrictMock(Client)
         def dataStore = createStrictMock(DataStore)

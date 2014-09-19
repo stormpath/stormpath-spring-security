@@ -21,6 +21,11 @@ import com.stormpath.spring.security.provider.StormpathAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * Abstract class that should be overriden by any class that integrates this app with Stormpath's Backend. This
+ * class provides easy access to the {@link com.stormpath.spring.security.provider.StormpathAuthenticationProvider
+ * StormpathAuthenticationProvider}, the {@link com.stormpath.sdk.client.Client Stormpath Client instance} and the configured
+ * Stormpath {@link com.stormpath.sdk.application.Application application} this Spring Security app interacts with.
+ *
  * @since 0.3.0
  */
 public class AbstractService {
@@ -28,16 +33,39 @@ public class AbstractService {
     @Autowired
     private StormpathAuthenticationProvider authenticationProvider;
 
-    private Application application;
+    private static Application application;
 
+    /**
+     * Returns the {@link com.stormpath.spring.security.provider.StormpathAuthenticationProvider Stormpath Spring Security
+     * Plugin Application Provider}.
+     *
+     * @return the the {@link com.stormpath.spring.security.provider.StormpathAuthenticationProvider Stormpath Spring Security
+     * Plugin Application Provider}.
+     */
     protected StormpathAuthenticationProvider getAuthenticationProvider() {
         return authenticationProvider;
     }
 
+    /**
+     * Returns the {@link com.stormpath.sdk.client.Client Stormpath Client instance} this Spring Security App is using to
+     * interact with the Stormpath Backend.
+     *
+     * @return the {@link com.stormpath.sdk.client.Client Stormpath Client instance} this Spring Security App is using to
+     * interact with the Stormpath Backend.
+     */
     protected Client getStormpathClient() {
         return getAuthenticationProvider().getClient();
     }
 
+    /**
+     * Returns the {@link com.stormpath.sdk.application.Application Stormpath Application instance} this Spring Security
+     * App is configured to work with.
+     * <p/>
+     * The Application instance is static and thus shared among every sub-class of this class.
+     *
+     * @return the {@link com.stormpath.sdk.application.Application Stormpath Application instance} this Spring Security
+     * App is configured to work with.
+     */
     protected Application getStormpathApplication() {
         if (this.application == null) {
             this.application = getStormpathClient().getResource(getAuthenticationProvider().getApplicationRestUrl(), Application.class);

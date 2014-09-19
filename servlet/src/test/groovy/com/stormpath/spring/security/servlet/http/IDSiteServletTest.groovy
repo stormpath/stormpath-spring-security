@@ -17,14 +17,17 @@ package com.stormpath.spring.security.servlet.http
 
 import com.stormpath.sdk.account.Account
 import com.stormpath.sdk.idsite.AccountResult
+import com.stormpath.sdk.idsite.AuthenticationResult
 import com.stormpath.sdk.idsite.IdSiteCallbackHandler
 import com.stormpath.sdk.idsite.IdSiteResultListener
-import com.stormpath.spring.security.authc.IdSiteAccountIDField
+import com.stormpath.sdk.idsite.LogoutResult
 import com.stormpath.spring.security.authc.IdSiteAuthenticationToken
 import com.stormpath.spring.security.provider.StormpathAuthenticationProvider
 import com.stormpath.spring.security.servlet.conf.Configuration
 import com.stormpath.spring.security.servlet.service.IdSiteService
 import org.easymock.IAnswer
+
+import static org.easymock.EasyMock.same
 import static org.junit.Assert.*
 import org.junit.Test
 import org.springframework.beans.factory.BeanFactory
@@ -46,12 +49,47 @@ import static org.easymock.EasyMock.verify
 class IdSiteServletTest {
 
     @Test
-    public void testLogin() {
+    public void testLoginWithDefaultListener() {
 
         def request = createStrictMock(HttpServletRequest)
         def response = createStrictMock(HttpServletResponse)
         def idSiteService = createStrictMock(IdSiteService)
         def stormpathAuthenticationProvider = createStrictMock(StormpathAuthenticationProvider)
+        def servletContextEvent = createStrictMock(ServletContextEvent)
+        def servletContext = createStrictMock(ServletContext)
+        def beanFactory = createStrictMock(BeanFactory)
+        def callbackUri = "http://api.stormpath.com/sso?jwtRequest=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpUXQiOoE1MDk4ODIzNTIsImp0aSI6IjUzODU2YmJmLTBlOTQtNDFmNC05OTJmLWZiYjFmZjA5MWVkZCIsImlzcyI6IjZKUVBDSVRNTzVFOEhFS042REtCVDdSNTIiLCJzdWIiOiJodHRwczovL2FwaS5zdG9ybXBhdGguY29tL3YxL2FwcGxpY2F0aW6ucy8zVHFieVoxcW83NGVETTRnVG7ySDk0IiwiY2JfdXJpIjoiaHR9cDovL2xvY2FsaG9zdDo4MDgwL2lkc2l0ZS9jYWxsYmFja0xvZ2luIn0.hBva8p4Wy9hAu5nR9euJcMRI0qR0Xkvna-GlBnMOGSQ"
+
+        IdSiteServlet servlet = createMockBuilder(IdSiteServlet.class)
+                .addMockedMethod("getBeanFactory", ServletContext).createMock();
+
+        expect(servletContextEvent.getServletContext()).andReturn(servletContext)
+        expect(servlet.getBeanFactory(servletContext)).andReturn(beanFactory)
+        expect(beanFactory.getBean("idSiteService")).andReturn(idSiteService)
+        expect(beanFactory.containsBean("idSiteResultListener")).andReturn(false)
+        expect(beanFactory.getBean("authenticationProvider")).andReturn(stormpathAuthenticationProvider)
+        expect(request.getRequestURI()).andReturn("/idsite/login")
+        expect(response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"))
+        expect(response.setHeader("Pragma", "no-cache"))
+        expect(idSiteService.getLoginRedirectUri("http://localhost:8080/idsite/callbackLogin")).andReturn(callbackUri)
+        expect(response.sendRedirect(callbackUri))
+
+        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider,
+                servletContextEvent, servletContext, beanFactory
+
+        servlet.contextInitialized(servletContextEvent)
+        servlet.doGet(request, response)
+
+        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider,
+                servletContextEvent, servletContext, beanFactory
+    }
+
+    @Test
+    public void testLoginWithCustomListener() {
+
+        def request = createStrictMock(HttpServletRequest)
+        def response = createStrictMock(HttpServletResponse)
+        def idSiteService = createStrictMock(IdSiteService)
         def idSiteResultListener = createStrictMock(IdSiteResultListener)
         def servletContextEvent = createStrictMock(ServletContextEvent)
         def servletContext = createStrictMock(ServletContext)
@@ -64,7 +102,6 @@ class IdSiteServletTest {
         expect(servletContextEvent.getServletContext()).andReturn(servletContext)
         expect(servlet.getBeanFactory(servletContext)).andReturn(beanFactory)
         expect(beanFactory.getBean("idSiteService")).andReturn(idSiteService)
-        expect(beanFactory.getBean("authenticationProvider")).andReturn(stormpathAuthenticationProvider)
         expect(beanFactory.containsBean("idSiteResultListener")).andReturn(true)
         expect(beanFactory.getBean("idSiteResultListener")).andReturn(idSiteResultListener)
         expect(request.getRequestURI()).andReturn("/idsite/login")
@@ -73,13 +110,13 @@ class IdSiteServletTest {
         expect(idSiteService.getLoginRedirectUri("http://localhost:8080/idsite/callbackLogin")).andReturn(callbackUri)
         expect(response.sendRedirect(callbackUri))
 
-        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener,
+        replay servlet, request, response, idSiteService, idSiteResultListener,
                 servletContextEvent, servletContext, beanFactory
 
         servlet.contextInitialized(servletContextEvent)
         servlet.doGet(request, response)
 
-        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener,
+        verify servlet, request, response, idSiteService, idSiteResultListener,
                 servletContextEvent, servletContext, beanFactory
     }
 
@@ -90,7 +127,6 @@ class IdSiteServletTest {
         def response = createStrictMock(HttpServletResponse)
         def idSiteService = createStrictMock(IdSiteService)
         def stormpathAuthenticationProvider = createStrictMock(StormpathAuthenticationProvider)
-        def idSiteResultListener = createStrictMock(IdSiteResultListener)
         def servletContextEvent = createStrictMock(ServletContextEvent)
         def servletContext = createStrictMock(ServletContext)
         def beanFactory = createStrictMock(BeanFactory)
@@ -99,24 +135,29 @@ class IdSiteServletTest {
         def authentication = createStrictMock(Authentication)
         def accountResult = createStrictMock(AccountResult)
         def account = createStrictMock(Account)
+        def authenticationResult = createStrictMock(AuthenticationResult)
         def accountEmail = "some@email.com"
 
         IdSiteServlet servlet = createMockBuilder(IdSiteServlet.class)
                 .addMockedMethod("getBeanFactory", ServletContext).createMock();
-        servlet.idSitePrincipalAccountIdField = IdSiteAccountIDField.EMAIL
 
         expect(servletContextEvent.getServletContext()).andReturn(servletContext)
         expect(servlet.getBeanFactory(servletContext)).andReturn(beanFactory)
         expect(beanFactory.getBean("idSiteService")).andReturn(idSiteService)
+        expect(beanFactory.containsBean("idSiteResultListener")).andReturn(false)
         expect(beanFactory.getBean("authenticationProvider")).andReturn(stormpathAuthenticationProvider)
-        expect(beanFactory.containsBean("idSiteResultListener")).andReturn(true)
-        expect(beanFactory.getBean("idSiteResultListener")).andReturn(idSiteResultListener)
 
-        expect(idSiteService.getCallbackHandler(request, idSiteResultListener)).andReturn(callbackHandler)
+        expect(idSiteService.getCallbackHandler(same(request), anyObject(IdSiteResultListener))).andReturn(callbackHandler)
         expect(request.getRequestURI()).andReturn("/idsite/callbackLogin")
-        expect(callbackHandler.getAccountResult()).andReturn(accountResult)
-        expect(accountResult.getAccount()).andReturn(account)
-        expect(account.getEmail()).andReturn(accountEmail)
+        expect(callbackHandler.getAccountResult()).andAnswer( new IAnswer<AccountResult>() {
+            AccountResult answer() throws Throwable {
+                servlet.idSiteResultListener.onAuthenticated(authenticationResult)
+                return accountResult
+            }
+        })
+
+        expect(authenticationResult.getAccount()).andReturn(account)
+        expect(account.getEmail()).andReturn(accountEmail) times 2
 
         expect(stormpathAuthenticationProvider.authenticate(anyObject(IdSiteAuthenticationToken))).andAnswer( new IAnswer<Authentication>() {
             Authentication answer() throws Throwable {
@@ -131,14 +172,14 @@ class IdSiteServletTest {
 
         expect(response.sendRedirect(callbackUri))
 
-        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener, callbackHandler,
-                accountResult, account, servletContextEvent, servletContext, beanFactory, authentication
+        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider, callbackHandler,
+                accountResult, account, servletContextEvent, servletContext, beanFactory, authentication, authenticationResult
 
         servlet.contextInitialized(servletContextEvent)
         servlet.doGet(request, response)
 
-        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener, callbackHandler,
-                accountResult, account, servletContextEvent, servletContext, beanFactory, authentication
+        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider, callbackHandler,
+                accountResult, account, servletContextEvent, servletContext, beanFactory, authentication, authenticationResult
     }
 
     @Test
@@ -148,7 +189,6 @@ class IdSiteServletTest {
         def response = createStrictMock(HttpServletResponse)
         def idSiteService = createStrictMock(IdSiteService)
         def stormpathAuthenticationProvider = createStrictMock(StormpathAuthenticationProvider)
-        def idSiteResultListener = createStrictMock(IdSiteResultListener)
         def servletContextEvent = createStrictMock(ServletContextEvent)
         def servletContext = createStrictMock(ServletContext)
         def beanFactory = createStrictMock(BeanFactory)
@@ -160,22 +200,21 @@ class IdSiteServletTest {
         expect(servletContextEvent.getServletContext()).andReturn(servletContext)
         expect(servlet.getBeanFactory(servletContext)).andReturn(beanFactory)
         expect(beanFactory.getBean("idSiteService")).andReturn(idSiteService)
+        expect(beanFactory.containsBean("idSiteResultListener")).andReturn(false)
         expect(beanFactory.getBean("authenticationProvider")).andReturn(stormpathAuthenticationProvider)
-        expect(beanFactory.containsBean("idSiteResultListener")).andReturn(true)
-        expect(beanFactory.getBean("idSiteResultListener")).andReturn(idSiteResultListener)
         expect(request.getRequestURI()).andReturn("/idsite/logout")
         expect(response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, post-check=0, pre-check=0"))
         expect(response.setHeader("Pragma", "no-cache"))
         expect(idSiteService.getLogoutRedirectUri("http://localhost:8080/idsite/callbackLogout")).andReturn(callbackUri)
         expect(response.sendRedirect(callbackUri))
 
-        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener,
+        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider,
                 servletContextEvent, servletContext, beanFactory
 
         servlet.contextInitialized(servletContextEvent)
         servlet.doGet(request, response)
 
-        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener,
+        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider,
                 servletContextEvent, servletContext, beanFactory
     }
 
@@ -186,13 +225,14 @@ class IdSiteServletTest {
         def response = createStrictMock(HttpServletResponse)
         def idSiteService = createStrictMock(IdSiteService)
         def stormpathAuthenticationProvider = createStrictMock(StormpathAuthenticationProvider)
-        def idSiteResultListener = createStrictMock(IdSiteResultListener)
         def servletContextEvent = createStrictMock(ServletContextEvent)
         def servletContext = createStrictMock(ServletContext)
         def beanFactory = createStrictMock(BeanFactory)
         def callbackUri = Configuration.getLoginRedirectUri()
-        def authentication = createStrictMock(Authentication)
         def idSiteCallbackHandler = createStrictMock(IdSiteCallbackHandler)
+        def logoutResult = createStrictMock(LogoutResult)
+        def account = createStrictMock(Account)
+        def accountEmail = "some@email.com"
 
         IdSiteServlet servlet = createMockBuilder(IdSiteServlet.class)
                 .addMockedMethod("getBeanFactory", ServletContext).createMock();
@@ -200,22 +240,31 @@ class IdSiteServletTest {
         expect(servletContextEvent.getServletContext()).andReturn(servletContext)
         expect(servlet.getBeanFactory(servletContext)).andReturn(beanFactory)
         expect(beanFactory.getBean("idSiteService")).andReturn(idSiteService)
+        expect(beanFactory.containsBean("idSiteResultListener")).andReturn(false)
         expect(beanFactory.getBean("authenticationProvider")).andReturn(stormpathAuthenticationProvider)
-        expect(beanFactory.containsBean("idSiteResultListener")).andReturn(true)
-        expect(beanFactory.getBean("idSiteResultListener")).andReturn(idSiteResultListener)
+
         expect(request.getRequestURI()).andReturn("/idsite/callbackLogout")
-        expect(idSiteService.getCallbackHandler(request, idSiteResultListener)).andReturn(idSiteCallbackHandler)
-        expect(idSiteCallbackHandler.getAccountResult()).andReturn(null)
+        expect(idSiteService.getCallbackHandler(same(request), anyObject(IdSiteResultListener))).andReturn(idSiteCallbackHandler)
+        expect(idSiteCallbackHandler.getAccountResult()).andAnswer( new IAnswer<AccountResult>() {
+            AccountResult answer() throws Throwable {
+                servlet.idSiteResultListener.onLogout(logoutResult)
+                return logoutResult
+            }
+        })
+
+        expect(logoutResult.getAccount()).andReturn(account)
+        expect(account.getEmail()).andReturn(accountEmail)
+
         expect(response.sendRedirect(callbackUri))
 
-        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener,
-                servletContextEvent, servletContext, beanFactory, authentication, idSiteCallbackHandler
+        replay servlet, request, response, idSiteService, stormpathAuthenticationProvider,
+                servletContextEvent, servletContext, beanFactory, idSiteCallbackHandler, logoutResult, account
 
         servlet.contextInitialized(servletContextEvent)
         servlet.doGet(request, response)
 
-        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider, idSiteResultListener,
-                servletContextEvent, servletContext, beanFactory, authentication, idSiteCallbackHandler
+        verify servlet, request, response, idSiteService, stormpathAuthenticationProvider,
+                servletContextEvent, servletContext, beanFactory, idSiteCallbackHandler, logoutResult, account
     }
 }
 
