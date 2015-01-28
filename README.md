@@ -31,6 +31,13 @@ This project requires Maven 3 to build.  Run the following from a command prompt
 
 Release changes are viewable in the [change log](changelog.md)
 
+## Contributing
+
+Contributions, bug reports and issues are very welcome. Stormpath regularly maintains this repository, and are quick to review pull requests and accept changes!
+
+You can make your own contributions by forking the develop branch of this
+repository, making your changes, and issuing pull request on the develop branch.
+
 ## Copyright ##
 
 Copyright &copy; 2013-2015 Stormpath, Inc. and contributors.
